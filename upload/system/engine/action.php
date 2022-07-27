@@ -64,7 +64,11 @@ class Action {
 		$class = 'Opencart\\' . $registry->get('config')->get('application') . '\\' . $this->class;
 
 		// Initialize the class
-		if (class_exists($class)) {
+		$class_ext = "{$class}Ext";
+        if(class_exists($class_ext)){
+            $controller = new $class_ext($registry);
+        }
+		else if (class_exists($class)) {
 			$controller = new $class($registry);
 		} else {
 			return new \Exception('Error: Could not call route ' . $this->route . '!');
