@@ -1,7 +1,7 @@
 <?php
 namespace Opencart\Admin\Controller\Extension\Opencart\Total;
 class Tax extends \Opencart\System\Engine\Controller {
-	private $error = [];
+	private array $error = [];
 
 	public function index(): void {
 		$this->load->language('extension/opencart/total/tax');
@@ -26,7 +26,6 @@ class Tax extends \Opencart\System\Engine\Controller {
 		];
 
 		$data['save'] = $this->url->link('extension/opencart/total/tax|save', 'user_token=' . $this->session->data['user_token']);
-
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=total');
 
 		$data['total_tax_status'] = $this->config->get('total_tax_status');

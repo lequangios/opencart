@@ -1,10 +1,16 @@
 <?php
 namespace Opencart\Admin\Controller\Tool;
+use \Opencart\System\Helper AS Helper;
 class Backup extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('tool/backup');
 
 		$this->document->setTitle($this->language->get('heading_title'));
+
+		// Use the ini_get('upload_max_filesize') for the max file size
+		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), ini_get('upload_max_filesize'));
+
+		$data['config_file_max_size'] = Helper\General\convert_bytes(ini_get('upload_max_filesize'));
 
 		$data['breadcrumbs'] = [];
 
@@ -17,6 +23,8 @@ class Backup extends \Opencart\System\Engine\Controller {
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('tool/backup', 'user_token=' . $this->session->data['user_token'])
 		];
+
+		$data['upload'] = $this->url->link('tool/backup|upload', 'user_token=' . $this->session->data['user_token']);
 
 		$this->load->model('tool/backup');
 
@@ -181,7 +189,7 @@ class Backup extends \Opencart\System\Engine\Controller {
 				}
 			}
 
-			if ($position) {
+			if ($position !== false) {
 				$json['progress'] = round(($position / count($backup)) * 100);
 			} else {
 				$json['progress'] = 0;
@@ -198,11 +206,11 @@ class Backup extends \Opencart\System\Engine\Controller {
 			} elseif (($page * 200) >= $record_total) {
 				$json['text'] = sprintf($this->language->get('text_backup'), $table, ($page - 1) * 200, $record_total);
 
-				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/backup|backup', 'user_token=' . $this->session->data['user_token'] . '&filename=' . urlencode($filename) . '&table=' . $table . '&page=1'));
+				$json['next'] = $this->url->link('tool/backup|backup', 'user_token=' . $this->session->data['user_token'] . '&filename=' . urlencode($filename) . '&table=' . $table . '&page=1', true);
 			} else {
 				$json['text'] = sprintf($this->language->get('text_backup'), $table, ($page - 1) * 200, $page * 200);
 
-				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/backup|backup', 'user_token=' . $this->session->data['user_token'] . '&filename=' . urlencode($filename) . '&table=' . $table . '&page=' . ($page + 1)));
+				$json['next'] = $this->url->link('tool/backup|backup', 'user_token=' . $this->session->data['user_token'] . '&filename=' . urlencode($filename) . '&table=' . $table . '&page=' . ($page + 1), true);
 			}
 		}
 
@@ -321,13 +329,13 @@ class Backup extends \Opencart\System\Engine\Controller {
 			// Sanitize the filename
 			$filename = basename(html_entity_decode($this->request->files['upload']['name'], ENT_QUOTES, 'UTF-8'));
 
-			if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 128)) {
+			if ((Helper\Utf8\strlen($filename) < 3) || (Helper\Utf8\strlen($filename) > 128)) {
 				$json['error'] = $this->language->get('error_filename');
 			}
 
 			// Allowed file extension types
 			if (strtolower(substr(strrchr($filename, '.'), 1)) != 'sql') {
-				$json['error'] = $this->language->get('error_filetype');
+				$json['error'] = $this->language->get('error_file_type');
 			}
 		}
 
@@ -379,7 +387,7 @@ class Backup extends \Opencart\System\Engine\Controller {
 
 			exit();
 		} else {
-			exit('Error: Headers already sent out!');
+			exit($this->language->get('error_headers_sent'));
 		}
 	}
 

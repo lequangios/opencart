@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Localisation;
+use \Opencart\System\Helper AS Helper;
 class Location extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('localisation/location');
@@ -184,18 +185,19 @@ class Location extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('localisation/location', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['location_id'])) {
-			$data['save'] = $this->url->link('localisation/location|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('localisation/location|save', 'user_token=' . $this->session->data['user_token'] . '&location_id=' . $this->request->get['location_id']);
-		}
-
+		$data['save'] = $this->url->link('localisation/location|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('localisation/location', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['location_id'])) {
 			$this->load->model('localisation/location');
 
 			$location_info = $this->model_localisation_location->getLocation($this->request->get['location_id']);
+		}
+
+		if (isset($this->request->get['location_id'])) {
+			$data['location_id'] = (int)$this->request->get['location_id'];
+		} else {
+			$data['location_id'] = 0;
 		}
 
 		$this->load->model('setting/store');
@@ -270,25 +272,25 @@ class Location extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['name']) < 3) || (utf8_strlen($this->request->post['name']) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['name']) < 3) || (Helper\Utf8\strlen($this->request->post['name']) > 32)) {
 			$json['error']['name'] = $this->language->get('error_name');
 		}
 
-		if ((utf8_strlen($this->request->post['address']) < 3) || (utf8_strlen($this->request->post['address']) > 128)) {
+		if ((Helper\Utf8\strlen($this->request->post['address']) < 3) || (Helper\Utf8\strlen($this->request->post['address']) > 128)) {
 			$json['error']['address'] = $this->language->get('error_address');
 		}
 
-		if ((utf8_strlen($this->request->post['telephone']) < 3) || (utf8_strlen($this->request->post['telephone']) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['telephone']) < 3) || (Helper\Utf8\strlen($this->request->post['telephone']) > 32)) {
 			$json['error']['telephone'] = $this->language->get('error_telephone');
 		}
 
 		if (!$json) {
 			$this->load->model('localisation/location');
 
-			if (!isset($this->request->get['location_id'])) {
-				$this->model_localisation_location->addLocation($this->request->post);
+			if (!$this->request->post['location_id']) {
+				$json['location_id'] = $this->model_localisation_location->addLocation($this->request->post);
 			} else {
-				$this->model_localisation_location->editLocation($this->request->get['location_id'], $this->request->post);
+				$this->model_localisation_location->editLocation($this->request->post['location_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

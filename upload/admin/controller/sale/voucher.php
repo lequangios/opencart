@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Sale;
+use \Opencart\System\Helper AS Helper;
 class Voucher extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('sale/voucher');
@@ -201,12 +202,7 @@ class Voucher extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('sale/voucher', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['voucher_id'])) {
-			$data['save'] = $this->url->link('sale/voucher|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('sale/voucher|save', 'user_token=' . $this->session->data['user_token'] . '&voucher_id=' . $this->request->get['voucher_id']);
-		}
-
+		$data['save'] = $this->url->link('sale/voucher|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('sale/voucher', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['voucher_id'])) {
@@ -279,6 +275,8 @@ class Voucher extends \Opencart\System\Engine\Controller {
 			$data['status'] = true;
 		}
 
+		$data['history'] = $this->getHistory();
+
 		$data['user_token'] = $this->session->data['user_token'];
 
 		$data['header'] = $this->load->controller('common/header');
@@ -297,7 +295,7 @@ class Voucher extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['code']) < 3) || (utf8_strlen($this->request->post['code']) > 10)) {
+		if ((Helper\Utf8\strlen($this->request->post['code']) < 3) || (Helper\Utf8\strlen($this->request->post['code']) > 10)) {
 			$json['error']['code'] = $this->language->get('error_code');
 		}
 
@@ -306,26 +304,26 @@ class Voucher extends \Opencart\System\Engine\Controller {
 		$voucher_info = $this->model_sale_voucher->getVoucherByCode($this->request->post['code']);
 
 		if ($voucher_info) {
-			if (!isset($this->request->get['voucher_id'])) {
+			if (!isset($this->request->post['voucher_id'])) {
 				$json['error']['warning'] = $this->language->get('error_exists');
-			} elseif ($voucher_info['voucher_id'] != (int)$this->request->get['voucher_id'])  {
+			} elseif ($voucher_info['voucher_id'] != (int)$this->request->post['voucher_id'])  {
 				$json['error']['warning'] = $this->language->get('error_exists');
 			}
 		}
 
-		if ((utf8_strlen($this->request->post['to_name']) < 1) || (utf8_strlen($this->request->post['to_name']) > 64)) {
+		if ((Helper\Utf8\strlen($this->request->post['to_name']) < 1) || (Helper\Utf8\strlen($this->request->post['to_name']) > 64)) {
 			$json['error']['to_name'] = $this->language->get('error_to_name');
 		}
 
-		if ((utf8_strlen($this->request->post['to_email']) > 96) || !filter_var($this->request->post['to_email'], FILTER_VALIDATE_EMAIL)) {
+		if ((Helper\Utf8\strlen($this->request->post['to_email']) > 96) || !filter_var($this->request->post['to_email'], FILTER_VALIDATE_EMAIL)) {
 			$json['error']['to_email'] = $this->language->get('error_email');
 		}
 
-		if ((utf8_strlen($this->request->post['from_name']) < 1) || (utf8_strlen($this->request->post['from_name']) > 64)) {
+		if ((Helper\Utf8\strlen($this->request->post['from_name']) < 1) || (Helper\Utf8\strlen($this->request->post['from_name']) > 64)) {
 			$json['error']['from_name'] = $this->language->get('error_from_name');
 		}
 
-		if ((utf8_strlen($this->request->post['from_email']) > 96) || !filter_var($this->request->post['from_email'], FILTER_VALIDATE_EMAIL)) {
+		if ((Helper\Utf8\strlen($this->request->post['from_email']) > 96) || !filter_var($this->request->post['from_email'], FILTER_VALIDATE_EMAIL)) {
 			$json['error']['from_email'] = $this->language->get('error_email');
 		}
 
@@ -334,10 +332,10 @@ class Voucher extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			if (!isset($this->request->get['voucher_id'])) {
-				$this->model_sale_voucher->addVoucher($this->request->post);
+			if (!$this->request->post['voucher_id']) {
+				$json['voucher_id'] = $this->model_sale_voucher->addVoucher($this->request->post);
 			} else {
-				$this->model_sale_voucher->editVoucher($this->request->get['voucher_id'], $this->request->post);
+				$this->model_sale_voucher->editVoucher($this->request->post['voucher_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');
@@ -391,7 +389,15 @@ class Voucher extends \Opencart\System\Engine\Controller {
 	public function history(): void {
 		$this->load->language('sale/voucher');
 
-		$this->load->model('sale/voucher');
+		$this->response->setOutput($this->getHistory());
+	}
+
+	public function getHistory(): string {
+		if (isset($this->request->get['voucher_id'])) {
+			$voucher_id = (int)$this->request->get['voucher_id'];
+		} else {
+			$voucher_id = 0;
+		}
 
 		if (isset($this->request->get['page'])) {
 			$page = (int)$this->request->get['page'];
@@ -401,7 +407,9 @@ class Voucher extends \Opencart\System\Engine\Controller {
 
 		$data['histories'] = [];
 
-		$results = $this->model_sale_voucher->getHistories($this->request->get['voucher_id'], ($page - 1) * 10, 10);
+		$this->load->model('sale/voucher');
+
+		$results = $this->model_sale_voucher->getHistories($voucher_id, ($page - 1) * 10, 10);
 
 		foreach ($results as $result) {
 			$data['histories'][] = [
@@ -412,18 +420,18 @@ class Voucher extends \Opencart\System\Engine\Controller {
 			];
 		}
 
-		$history_total = $this->model_sale_voucher->getTotalHistories($this->request->get['voucher_id']);
+		$history_total = $this->model_sale_voucher->getTotalHistories($voucher_id);
 
 		$data['pagination'] = $this->load->controller('common/pagination', [
 			'total' => $history_total,
 			'page'  => $page,
 			'limit' => 10,
-			'url'   => $this->url->link('sale/voucher|history', 'user_token=' . $this->session->data['user_token'] . '&voucher_id=' . $this->request->get['voucher_id'] . '&page={page}')
+			'url'   => $this->url->link('sale/voucher|history', 'user_token=' . $this->session->data['user_token'] . '&voucher_id=' . $voucher_id . '&page={page}')
 		]);
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($history_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($history_total - 10)) ? $history_total : ((($page - 1) * 10) + 10), $history_total, ceil($history_total / 10));
 
-		$this->response->setOutput($this->load->view('sale/voucher_history', $data));
+		return $this->load->view('sale/voucher_history', $data);
 	}
 
 	public function send(): void {

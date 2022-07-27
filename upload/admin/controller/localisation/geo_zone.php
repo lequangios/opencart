@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Localisation;
+use \Opencart\System\Helper AS Helper;
 class GeoZone extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('localisation/geo_zone');
@@ -184,18 +185,19 @@ class GeoZone extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('localisation/geo_zone', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['geo_zone_id'])) {
-			$data['save'] = $this->url->link('localisation/geo_zone|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('localisation/geo_zone|save', 'user_token=' . $this->session->data['user_token'] . '&geo_zone_id=' . $this->request->get['geo_zone_id']);
-		}
-
+		$data['save'] = $this->url->link('localisation/geo_zone|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('localisation/geo_zone', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['geo_zone_id'])) {
 			$this->load->model('localisation/geo_zone');
 
 			$geo_zone_info = $this->model_localisation_geo_zone->getGeoZone($this->request->get['geo_zone_id']);
+		}
+
+		if (isset($this->request->get['geo_zone_id'])) {
+			$data['geo_zone_id'] = (int)$this->request->get['geo_zone_id'];
+		} else {
+			$data['geo_zone_id'] = 0;
 		}
 
 		if (!empty($geo_zone_info)) {
@@ -238,21 +240,21 @@ class GeoZone extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['name']) < 3) || (utf8_strlen($this->request->post['name']) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['name']) < 3) || (Helper\Utf8\strlen($this->request->post['name']) > 32)) {
 			$json['error']['name'] = $this->language->get('error_name');
 		}
 
-		if ((utf8_strlen($this->request->post['description']) < 3) || (utf8_strlen($this->request->post['description']) > 255)) {
+		if ((Helper\Utf8\strlen($this->request->post['description']) < 3) || (Helper\Utf8\strlen($this->request->post['description']) > 255)) {
 			$json['error']['description'] = $this->language->get('error_description');
 		}
 
 		if (!$json) {
 			$this->load->model('localisation/geo_zone');
 
-			if (!isset($this->request->get['geo_zone_id'])) {
-				$this->model_localisation_geo_zone->addGeoZone($this->request->post);
+			if (!$this->request->post['geo_zone_id']) {
+				$json['geo_zone_id'] = $this->model_localisation_geo_zone->addGeoZone($this->request->post);
 			} else {
-				$this->model_localisation_geo_zone->editGeoZone($this->request->get['geo_zone_id'], $this->request->post);
+				$this->model_localisation_geo_zone->editGeoZone($this->request->post['geo_zone_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

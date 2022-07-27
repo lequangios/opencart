@@ -2,7 +2,7 @@
 /**
  * @package		OpenCart
  * @author		Daniel Kerr
- * @copyright	Copyright (c) 2005 - 2017, OpenCart, Ltd. (https://www.opencart.com/)
+ * @copyright	Copyright (c) 2005 - 2022, OpenCart, Ltd. (https://www.opencart.com/)
  * @license		https://opensource.org/licenses/GPL-3.0
  * @link		https://www.opencart.com
 */
@@ -28,7 +28,17 @@ class Response {
 	public function addHeader(string $header): void {
 		$this->headers[] = $header;
 	}
-	
+
+	/**
+	 * Get Headers
+	 *
+	 * @param	array
+	 *
+ 	*/
+	public function getHeaders(): array {
+		return $this->headers;
+	}
+
 	/**
 	 * Redirect
 	 *
@@ -40,7 +50,7 @@ class Response {
 		header('Location: ' . str_replace(['&amp;', "\n", "\r"], ['&', '', ''], $url), true, $status);
 		exit();
 	}
-	
+
 	/**
 	 * Set Compression
 	 *
@@ -76,7 +86,7 @@ class Response {
 	 * 
 	 * @return	string
  	*/
-	private function compress(array $data, int $level = 0): string {
+	private function compress(string $data, int $level = 0): string {
 		if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)) {
 			$encoding = 'gzip';
 		}
@@ -105,7 +115,7 @@ class Response {
 
 		return gzencode($data, $level);
 	}
-	
+
 	/**
 	 * Output
 	 *
@@ -114,13 +124,13 @@ class Response {
 	public function output(): void {
 		if ($this->output) {
 			$output = $this->level ? $this->compress($this->output, $this->level) : $this->output;
-			
+
 			if (!headers_sent()) {
 				foreach ($this->headers as $header) {
 					header($header, true);
 				}
 			}
-			
+
 			echo $output;
 		}
 	}

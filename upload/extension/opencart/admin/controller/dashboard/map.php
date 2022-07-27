@@ -24,7 +24,6 @@ class Map extends \Opencart\System\Engine\Controller {
 		];
 
 		$data['save'] = $this->url->link('extension/opencart/dashboard/map|save', 'user_token=' . $this->session->data['user_token']);
-
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=dashboard');
 
 		$data['dashboard_map_width'] = $this->config->get('dashboard_map_width');
@@ -74,7 +73,7 @@ class Map extends \Opencart\System\Engine\Controller {
 		return $this->load->view('extension/opencart/dashboard/map_info', $data);
 	}
 
-	public function map() {
+	public function map(): void {
 		$json = [];
 
 		$this->load->model('extension/opencart/dashboard/map');

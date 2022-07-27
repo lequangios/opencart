@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Catalog;
+use \Opencart\System\Helper AS Helper;
 class AttributeGroup extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('catalog/attribute_group');
@@ -184,24 +185,19 @@ class AttributeGroup extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('catalog/attribute_group', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
+		$data['save'] = $this->url->link('catalog/attribute_group|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('catalog/attribute_group', 'user_token=' . $this->session->data['user_token'] . $url);
-
-		if (!isset($this->request->get['attribute_group_id'])) {
-			$data['save'] = $this->url->link('catalog/attribute_group|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('catalog/attribute_group|save', 'user_token=' . $this->session->data['user_token'] . '&attribute_group_id=' . $this->request->get['attribute_group_id']);
-		}
-
-		if (isset($this->request->get['attribute_group_id'])) {
-			$data['attribute_group_id'] = $this->request->get['attribute_group_id'];
-		} else {
-			$data['attribute_group_id'] = 0;
-		}
 
 		if (isset($this->request->get['attribute_group_id'])) {
 			$this->load->model('catalog/attribute_group');
 
 			$attribute_group_info = $this->model_catalog_attribute_group->getAttributeGroup($this->request->get['attribute_group_id']);
+		}
+
+		if (isset($this->request->get['attribute_group_id'])) {
+			$data['attribute_group_id'] = (int)$this->request->get['attribute_group_id'];
+		} else {
+			$data['attribute_group_id'] = 0;
 		}
 
 		$this->load->model('localisation/language');
@@ -239,7 +235,7 @@ class AttributeGroup extends \Opencart\System\Engine\Controller {
 		}
 
 		foreach ($this->request->post['attribute_group_description'] as $language_id => $value) {
-			if ((utf8_strlen(trim($value['name'])) < 1) || (utf8_strlen($value['name']) > 64)) {
+			if ((Helper\Utf8\strlen(trim($value['name'])) < 1) || (Helper\Utf8\strlen($value['name']) > 64)) {
 				$json['error']['name_' . $language_id] = $this->language->get('error_name');
 			}
 		}
@@ -251,10 +247,10 @@ class AttributeGroup extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->model('catalog/attribute_group');
 
-			if (!isset($this->request->get['attribute_group_id'])) {
-				$this->model_catalog_attribute_group->addAttributeGroup($this->request->post);
+			if (!$this->request->post['attribute_group_id']) {
+				$json['attribute_group_id'] = $this->model_catalog_attribute_group->addAttributeGroup($this->request->post);
 			} else {
-				$this->model_catalog_attribute_group->editAttributeGroup($this->request->get['attribute_group_id'], $this->request->post);
+				$this->model_catalog_attribute_group->editAttributeGroup($this->request->post['attribute_group_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

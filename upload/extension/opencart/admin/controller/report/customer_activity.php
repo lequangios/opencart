@@ -24,7 +24,6 @@ class CustomerActivity extends \Opencart\System\Engine\Controller {
 		];
 
 		$data['save'] = $this->url->link('extension/opencart/report/customer_activity|save', 'user_token=' . $this->session->data['user_token']);
-
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=report');
 
 		$data['report_customer_activity_status'] = $this->config->get('report_customer_activity_status');
@@ -57,10 +56,24 @@ class CustomerActivity extends \Opencart\System\Engine\Controller {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
-		
+
 	public function report(): void {
 		$this->load->language('extension/opencart/report/customer_activity');
 
+		$data['list'] = $this->getReport();
+
+		$data['user_token'] = $this->session->data['user_token'];
+
+		$this->response->setOutput($this->load->view('extension/opencart/report/customer_activity', $data));
+	}
+
+	public function list(): void {
+		$this->load->language('extension/opencart/report/customer_activity');
+
+		$this->response->setOutput($this->getReport());
+	}
+
+	public function getReport(): string {
 		if (isset($this->request->get['filter_customer'])) {
 			$filter_customer = $this->request->get['filter_customer'];
 		} else {
@@ -117,7 +130,7 @@ class CustomerActivity extends \Opencart\System\Engine\Controller {
 			];
 
 			$replace = [
-				$this->url->link('customer/customer|edit', 'user_token=' . $this->session->data['user_token'] . '&customer_id='),
+				$this->url->link('customer/customer|form', 'user_token=' . $this->session->data['user_token'] . '&customer_id='),
 				$this->url->link('sale/order|info', 'user_token=' . $this->session->data['user_token'] . '&order_id=')
 			];
 
@@ -162,6 +175,6 @@ class CustomerActivity extends \Opencart\System\Engine\Controller {
 
 		$data['user_token'] = $this->session->data['user_token'];
 
-		$this->response->setOutput($this->load->view('extension/opencart/report/customer_activity', $data));
+		return $this->load->view('extension/opencart/report/customer_activity_list', $data);
 	}
 }

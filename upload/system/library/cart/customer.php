@@ -1,14 +1,13 @@
 <?php
 namespace Opencart\System\Library\Cart;
 class Customer {
-	private $customer_id = 0;
-	private $firstname = '';
-	private $lastname = '';
-	private $customer_group_id = 0;
-	private $email = '';
-	private $telephone = '';
-	private $newsletter = false;
-	private $address_id = 0;
+	private int $customer_id = 0;
+	private string $firstname = '';
+	private string $lastname = '';
+	private int $customer_group_id = 0;
+	private string $email = '';
+	private string $telephone = '';
+	private bool $newsletter = false;
 
 	public function __construct(\Opencart\System\Engine\Registry $registry) {
 		$this->config = $registry->get('config');
@@ -27,7 +26,6 @@ class Customer {
 				$this->email = $customer_query->row['email'];
 				$this->telephone = $customer_query->row['telephone'];
 				$this->newsletter = $customer_query->row['newsletter'];
-				$this->address_id = $customer_query->row['address_id'];
 
 				$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `language_id` = '" . (int)$this->config->get('config_language_id') . "', `ip` = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE `customer_id` = '" . (int)$this->customer_id . "'");
 			} else {
@@ -65,7 +63,6 @@ class Customer {
 			$this->email = $customer_query->row['email'];
 			$this->telephone = $customer_query->row['telephone'];
 			$this->newsletter = $customer_query->row['newsletter'];
-			$this->address_id = $customer_query->row['address_id'];
 
 			$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `language_id` = '" . (int)$this->config->get('config_language_id') . "', `ip` = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE `customer_id` = '" . (int)$this->customer_id . "'");
 
@@ -85,7 +82,6 @@ class Customer {
 		$this->email = '';
 		$this->telephone = '';
 		$this->newsletter = false;
-		$this->address_id = 0;
 	}
 
 	public function isLogged(): bool {
@@ -121,12 +117,17 @@ class Customer {
 	}
 
 	public function getAddressId(): int {
-		return $this->address_id;
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "address` WHERE `customer_id` = '" . (int)$this->customer_id . "' AND `default` = '1'");
+
+		if ($query->num_rows) {
+			return (int)$query->row['address_id'];
+		} else {
+			return 0;
+		}
 	}
 
 	public function getBalance(): float {
 		$query = $this->db->query("SELECT SUM(`amount`) AS `total` FROM `" . DB_PREFIX . "customer_transaction` WHERE `customer_id` = '" . (int)$this->customer_id . "'");
-
 
 		return (float)$query->row['total'];
 	}

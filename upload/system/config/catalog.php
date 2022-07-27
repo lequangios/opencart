@@ -21,6 +21,9 @@ $_['action_pre_action']  = [
 	'startup/session',
 	'startup/language',
 	'startup/seo_url',
+	'startup/customer',
+	'startup/currency',
+	'startup/tax',
 	'startup/application',
 	'startup/extension',
 	'startup/startup',
@@ -28,6 +31,7 @@ $_['action_pre_action']  = [
 	'startup/error',
 	'startup/event',
 	'startup/sass',
+	'startup/api',
 	'startup/maintenance'
 ];
 

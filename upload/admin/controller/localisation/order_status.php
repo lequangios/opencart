@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Localisation;
+use \Opencart\System\Helper AS Helper;
 class OrderStatus extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('localisation/order_status');
@@ -182,13 +183,14 @@ class OrderStatus extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('localisation/order_status', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['order_status_id'])) {
-			$data['save'] = $this->url->link('localisation/order_status|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('localisation/order_status|save', 'user_token=' . $this->session->data['user_token'] . '&order_status_id=' . $this->request->get['order_status_id']);
-		}
-
+		$data['save'] = $this->url->link('localisation/order_status|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('localisation/order_status', 'user_token=' . $this->session->data['user_token'] . $url);
+
+		if (isset($this->request->get['order_status_id'])) {
+			$data['order_status_id'] = (int)$this->request->get['order_status_id'];
+		} else {
+			$data['order_status_id'] = 0;
+		}
 
 		$this->load->model('localisation/language');
 
@@ -221,7 +223,7 @@ class OrderStatus extends \Opencart\System\Engine\Controller {
 		}
 
 		foreach ($this->request->post['order_status'] as $language_id => $value) {
-			if ((utf8_strlen($value['name']) < 3) || (utf8_strlen($value['name']) > 32)) {
+			if ((Helper\Utf8\strlen($value['name']) < 3) || (Helper\Utf8\strlen($value['name']) > 32)) {
 				$json['error']['name_' . $language_id] = $this->language->get('error_name');
 			}
 		}
@@ -229,10 +231,10 @@ class OrderStatus extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->model('localisation/order_status');
 
-			if (!isset($this->request->get['order_status_id'])) {
-				$this->model_localisation_order_status->addOrderStatus($this->request->post);
+			if (!$this->request->post['order_status_id']) {
+				$json['order_status_id'] = $this->model_localisation_order_status->addOrderStatus($this->request->post);
 			} else {
-				$this->model_localisation_order_status->editOrderStatus($this->request->get['order_status_id'], $this->request->post);
+				$this->model_localisation_order_status->editOrderStatus($this->request->post['order_status_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');
@@ -263,12 +265,6 @@ class OrderStatus extends \Opencart\System\Engine\Controller {
 		foreach ($selected as $order_status_id) {
 			if ($this->config->get('config_order_status_id') == $order_status_id) {
 				$json['error'] = $this->language->get('error_default');
-			}
-
-			$store_total = $this->model_setting_store->getTotalStoresByOrderStatusId($order_status_id);
-
-			if ($store_total) {
-				$json['error'] = sprintf($this->language->get('error_store'), $store_total);
 			}
 
 			$order_total = $this->model_sale_order->getTotalOrdersByOrderStatusId($order_status_id);

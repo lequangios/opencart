@@ -29,8 +29,8 @@ class Log {
      *
      * @param	string	$message
      */
-	public function write(string $message): void {
-		$this->message .= date('Y-m-d G:i:s') . ' - ' . print_r($message, true) . "\n";
+	public function write(string|array $message): void {
+		$this->message .= date('Y-m-d H:i:s') . ' - ' . print_r($message, true) . "\n";
 	}
 	
 	/**
@@ -38,6 +38,6 @@ class Log {
      *
      */
 	public function __destruct() {
-		file_put_contents($this->file, $this->message, FILE_APPEND);
+		if (is_file($this->file)) file_put_contents($this->file, $this->message, FILE_APPEND);
 	}
 }

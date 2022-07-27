@@ -2,7 +2,7 @@
 namespace Opencart\Admin\Model\Catalog;
 class Review extends \Opencart\System\Engine\Model {
 	public function addReview(array $data): int {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "review` SET `author` = '" . $this->db->escape((string)$data['author']) . "', `product_id` = '" . (int)$data['product_id'] . "', `text` = '" . $this->db->escape(strip_tags((string)$data['text'])) . "', `rating` = '" . (int)$data['rating'] . "', `status` = '" . (bool)$data['status'] . "', `date_added` = '" . $this->db->escape((string)$data['date_added']) . "'");
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "review` SET `author` = '" . $this->db->escape((string)$data['author']) . "', `product_id` = '" . (int)$data['product_id'] . "', `text` = '" . $this->db->escape(strip_tags((string)$data['text'])) . "', `rating` = '" . (int)$data['rating'] . "', `status` = '" . (bool)(isset($data['status']) ? $data['status'] : 0) . "', `date_added` = '" . $this->db->escape((string)$data['date_added']) . "'");
 
 		$review_id = $this->db->getLastId();
 
@@ -12,7 +12,7 @@ class Review extends \Opencart\System\Engine\Model {
 	}
 
 	public function editReview(int $review_id, array $data): void {
-		$this->db->query("UPDATE `" . DB_PREFIX . "review` SET `author` = '" . $this->db->escape((string)$data['author']) . "', `product_id` = '" . (int)$data['product_id'] . "', `text` = '" . $this->db->escape(strip_tags((string)$data['text'])) . "', `rating` = '" . (int)$data['rating'] . "', `status` = '" . (bool)$data['status'] . "', `date_added` = '" . $this->db->escape((string)$data['date_added']) . "', `date_modified` = NOW() WHERE `review_id` = '" . (int)$review_id . "'");
+		$this->db->query("UPDATE `" . DB_PREFIX . "review` SET `author` = '" . $this->db->escape((string)$data['author']) . "', `product_id` = '" . (int)$data['product_id'] . "', `text` = '" . $this->db->escape(strip_tags((string)$data['text'])) . "', `rating` = '" . (int)$data['rating'] . "', `status` = '" . (bool)(isset($data['status']) ? $data['status'] : 0) . "', `date_added` = '" . $this->db->escape((string)$data['date_added']) . "', `date_modified` = NOW() WHERE `review_id` = '" . (int)$review_id . "'");
 
 		$this->cache->delete('product');
 	}
@@ -33,19 +33,23 @@ class Review extends \Opencart\System\Engine\Model {
 		$sql = "SELECT r.`review_id`, pd.`name`, r.`author`, r.`rating`, r.`status`, r.`date_added` FROM `" . DB_PREFIX . "review` r LEFT JOIN `" . DB_PREFIX . "product_description` pd ON (r.`product_id` = pd.`product_id`) WHERE pd.`language_id` = '" . (int)$this->config->get('config_language_id') . "'";
 
 		if (!empty($data['filter_product'])) {
-			$sql .= " AND pd.`name` LIKE '" . $this->db->escape((string)$data['filter_product']) . "%'";
+			$sql .= " AND pd.`name` LIKE '" . $this->db->escape((string)$data['filter_product'] . '%') . "'";
 		}
 
 		if (!empty($data['filter_author'])) {
-			$sql .= " AND r.`author` LIKE '" . $this->db->escape((string)$data['filter_author']) . "%'";
+			$sql .= " AND r.`author` LIKE '" . $this->db->escape((string)$data['filter_author'] . '%') . "'";
 		}
 
 		if (isset($data['filter_status']) && $data['filter_status'] !== '') {
 			$sql .= " AND r.`status` = '" . (int)$data['filter_status'] . "'";
 		}
 
-		if (!empty($data['filter_date_added'])) {
-			$sql .= " AND DATE(r.`date_added`) = DATE('" . $this->db->escape((string)$data['filter_date_added']) . "')";
+		if (!empty($data['filter_date_from'])) {
+			$sql .= " AND DATE(r.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_from']) . "')";
+		}
+
+		if (!empty($data['filter_date_to'])) {
+			$sql .= " AND DATE(r.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_to']) . "')";
 		}
 
 		$sort_data = [
@@ -89,19 +93,23 @@ class Review extends \Opencart\System\Engine\Model {
 		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "review` r LEFT JOIN `" . DB_PREFIX . "product_description` pd ON (r.`product_id` = pd.`product_id`) WHERE pd.`language_id` = '" . (int)$this->config->get('config_language_id') . "'";
 
 		if (!empty($data['filter_product'])) {
-			$sql .= " AND pd.`name` LIKE '" . $this->db->escape((string)$data['filter_product']) . "%'";
+			$sql .= " AND pd.`name` LIKE '" . $this->db->escape((string)$data['filter_product'] . '%') . "'";
 		}
 
 		if (!empty($data['filter_author'])) {
-			$sql .= " AND r.`author` LIKE '" . $this->db->escape((string)$data['filter_author']) . "%'";
+			$sql .= " AND r.`author` LIKE '" . $this->db->escape((string)$data['filter_author'] . '%') . "'";
 		}
 
 		if (isset($data['filter_status']) && $data['filter_status'] !== '') {
 			$sql .= " AND r.`status` = '" . (int)$data['filter_status'] . "'";
 		}
 
-		if (!empty($data['filter_date_added'])) {
-			$sql .= " AND DATE(r.`date_added`) = DATE('" . $this->db->escape((string)$data['filter_date_added']) . "')";
+		if (!empty($data['filter_date_from'])) {
+			$sql .= " AND DATE(r.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_from']) . "')";
+		}
+
+		if (!empty($data['filter_date_to'])) {
+			$sql .= " AND DATE(r.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_to']) . "')";
 		}
 
 		$query = $this->db->query($sql);

@@ -1,7 +1,7 @@
 <?php
 namespace Opencart\Admin\Controller\User;
+use \Opencart\System\Helper AS Helper;
 class UserPermission extends \Opencart\System\Engine\Controller {
-
 	public function index(): void {
 		$this->load->language('user/user_group');
 
@@ -183,18 +183,19 @@ class UserPermission extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('user/user_permission', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['user_group_id'])) {
-			$data['save'] = $this->url->link('user/user_permission|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('user/user_permission|save', 'user_token=' . $this->session->data['user_token'] . '&user_group_id=' . $this->request->get['user_group_id']);
-		}
-
+		$data['save'] = $this->url->link('user/user_permission|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('user/user_permission', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['user_group_id'])) {
 			$this->load->model('user/user_group');
 
 			$user_group_info = $this->model_user_user_group->getUserGroup($this->request->get['user_group_id']);
+		}
+
+		if (isset($this->request->get['user_group_id'])) {
+			$data['user_group_id'] = (int)$this->request->get['user_group_id'];
+		} else {
+			$data['user_group_id'] = 0;
 		}
 
 		if (!empty($user_group_info)) {
@@ -210,11 +211,27 @@ class UserPermission extends \Opencart\System\Engine\Controller {
 			'common/login',
 			'common/logout',
 			'common/forgotten',
-			'common/reset',			
+			'common/authorize',
 			'common/footer',
 			'common/header',
 			'error/not_found',
-			'error/permission'
+			'error/permission',
+			'event/currency',
+			'event/debug',
+			'event/language',
+			'event/statistics',
+			'startup/application',
+			'startup/error',
+			'startup/event',
+			'startup/extension',
+			'startup/language',
+			'startup/login',
+			'startup/notification',
+			'startup/permission',
+			'startup/sass',
+			'startup/session',
+			'startup/setting',
+			'startup/startup'
 		];
 
 		$files = [];
@@ -226,10 +243,10 @@ class UserPermission extends \Opencart\System\Engine\Controller {
 		while (count($path) != 0) {
 			$next = array_shift($path);
 
-			foreach (glob($next) as $file) {
+			foreach (glob($next . '/*') as $file) {
 				// If directory add to path array
 				if (is_dir($file)) {
-					$path[] = $file . '/*';
+					$path[] = $file;
 				}
 
 				// Add the file to the files to be deleted array
@@ -295,17 +312,17 @@ class UserPermission extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['name']) < 3) || (utf8_strlen($this->request->post['name']) > 64)) {
+		if ((Helper\Utf8\strlen($this->request->post['name']) < 3) || (Helper\Utf8\strlen($this->request->post['name']) > 64)) {
 			$json['error']['name'] = $this->language->get('error_name');
 		}
 
 		if (!$json) {
 			$this->load->model('user/user_group');
 
-			if (!isset($this->request->get['user_group_id'])) {
-				$this->model_user_user_group->addUserGroup($this->request->post);
+			if (!$this->request->post['user_group_id']) {
+				$json['user_group_id'] = $this->model_user_user_group->addUserGroup($this->request->post);
 			} else {
-				$this->model_user_user_group->editUserGroup($this->request->get['user_group_id'], $this->request->post);
+				$this->model_user_user_group->editUserGroup($this->request->post['user_group_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

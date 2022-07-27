@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Marketing;
+use \Opencart\System\Helper AS Helper;
 class Coupon extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('marketing/coupon');
@@ -192,18 +193,19 @@ class Coupon extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('marketing/coupon', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['coupon_id'])) {
-			$data['save'] = $this->url->link('marketing/coupon|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('marketing/coupon|save', 'user_token=' . $this->session->data['user_token'] . '&coupon_id=' . $this->request->get['coupon_id']);
-		}
-
+		$data['save'] = $this->url->link('marketing/coupon|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('marketing/coupon', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['coupon_id'])) {
 			$this->load->model('marketing/coupon');
 
 			$coupon_info = $this->model_marketing_coupon->getCoupon($this->request->get['coupon_id']);
+		}
+
+		if (isset($this->request->get['coupon_id'])) {
+			$data['coupon_id'] = (int)$this->request->get['coupon_id'];
+		} else {
+			$data['coupon_id'] = 0;
 		}
 
 		if (!empty($coupon_info)) {
@@ -320,6 +322,8 @@ class Coupon extends \Opencart\System\Engine\Controller {
 			$data['status'] = true;
 		}
 
+		$data['history'] = $this->getHistory();
+
 		$data['user_token'] = $this->session->data['user_token'];
 
 		$data['header'] = $this->load->controller('common/header');
@@ -338,11 +342,11 @@ class Coupon extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['name']) < 3) || (utf8_strlen($this->request->post['name']) > 128)) {
+		if ((Helper\Utf8\strlen($this->request->post['name']) < 3) || (Helper\Utf8\strlen($this->request->post['name']) > 128)) {
 			$json['error']['name'] = $this->language->get('error_name');
 		}
 
-		if ((utf8_strlen($this->request->post['code']) < 3) || (utf8_strlen($this->request->post['code']) > 20)) {
+		if ((Helper\Utf8\strlen($this->request->post['code']) < 3) || (Helper\Utf8\strlen($this->request->post['code']) > 20)) {
 			$json['error']['code'] = $this->language->get('error_code');
 		}
 
@@ -351,18 +355,18 @@ class Coupon extends \Opencart\System\Engine\Controller {
 		$coupon_info = $this->model_marketing_coupon->getCouponByCode($this->request->post['code']);
 
 		if ($coupon_info) {
-			if (!isset($this->request->get['coupon_id'])) {
+			if (!isset($this->request->post['coupon_id'])) {
 				$json['error']['warning'] = $this->language->get('error_exists');
-			} elseif ($coupon_info['coupon_id'] != (int)$this->request->get['coupon_id']) {
+			} elseif ($coupon_info['coupon_id'] != (int)$this->request->post['coupon_id']) {
 				$json['error']['warning'] = $this->language->get('error_exists');
 			}
 		}
 
 		if (!$json) {
-			if (!isset($this->request->get['coupon_id'])) {
-				$this->model_marketing_coupon->addCoupon($this->request->post);
+			if (!$this->request->post['coupon_id']) {
+				$json['coupon_id'] = $this->model_marketing_coupon->addCoupon($this->request->post);
 			} else {
-				$this->model_marketing_coupon->editCoupon($this->request->get['coupon_id'], $this->request->post);
+				$this->model_marketing_coupon->editCoupon($this->request->post['coupon_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');
@@ -404,6 +408,10 @@ class Coupon extends \Opencart\System\Engine\Controller {
 	public function history(): void {
 		$this->load->language('marketing/coupon');
 
+		$this->response->setOutput($this->getHistory());
+	}
+
+	public function getHistory(): string {
 		if (isset($this->request->get['coupon_id'])) {
 			$coupon_id = (int)$this->request->get['coupon_id'];
 		} else {
@@ -442,6 +450,6 @@ class Coupon extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($history_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($history_total - 10)) ? $history_total : ((($page - 1) * 10) + 10), $history_total, ceil($history_total / 10));
 
-		$this->response->setOutput($this->load->view('marketing/coupon_history', $data));
+		return $this->load->view('marketing/coupon_history', $data);
 	}
 }

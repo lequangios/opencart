@@ -1,10 +1,29 @@
 <?php
 namespace Opencart\Admin\Controller\Localisation;
+use \Opencart\System\Helper AS Helper;
 class Zone extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('localisation/zone');
 
 		$this->document->setTitle($this->language->get('heading_title'));
+
+		if (isset($this->request->get['filter_name'])) {
+			$filter_name = (string)$this->request->get['filter_name'];
+		} else {
+			$filter_name = '';
+		}
+
+		if (isset($this->request->get['filter_country'])) {
+			$filter_country = (string)$this->request->get['filter_country'];
+		} else {
+			$filter_country = '';
+		}
+
+		if (isset($this->request->get['filter_code'])) {
+			$filter_code = (string)$this->request->get['filter_code'];
+		} else {
+			$filter_code = '';
+		}
 
 		$url = '';
 
@@ -36,6 +55,10 @@ class Zone extends \Opencart\System\Engine\Controller {
 		$data['delete'] = $this->url->link('localisation/zone|delete', 'user_token=' . $this->session->data['user_token']);
 
 		$data['list'] = $this->getList();
+
+		$data['filter_name'] = $filter_name;
+		$data['filter_country'] = $filter_country;
+		$data['filter_code'] = $filter_code;
 
 		$data['user_token'] = $this->session->data['user_token'];
 
@@ -204,10 +227,6 @@ class Zone extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($zone_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($zone_total - $this->config->get('config_pagination_admin'))) ? $zone_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $zone_total, ceil($zone_total / $this->config->get('config_pagination_admin')));
 
-		$data['filter_name'] = $filter_name;
-		$data['filter_country'] = $filter_country;
-		$data['filter_code'] = $filter_code;
-
 		$data['sort'] = $sort;
 		$data['order'] = $order;
 
@@ -259,18 +278,19 @@ class Zone extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('localisation/zone', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['zone_id'])) {
-			$data['save'] = $this->url->link('localisation/zone|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('localisation/zone|save', 'user_token=' . $this->session->data['user_token'] . '&zone_id=' . $this->request->get['zone_id']);
-		}
-
+		$data['save'] = $this->url->link('localisation/zone|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('localisation/zone', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['zone_id'])) {
 			$this->load->model('localisation/zone');
 
 			$zone_info = $this->model_localisation_zone->getZone($this->request->get['zone_id']);
+		}
+
+		if (isset($this->request->get['zone_id'])) {
+			$data['zone_id'] = (int)$this->request->get['zone_id'];
+		} else {
+			$data['zone_id'] = 0;
 		}
 
 		if (!empty($zone_info)) {
@@ -291,15 +311,15 @@ class Zone extends \Opencart\System\Engine\Controller {
 			$data['code'] = '';
 		}
 
+		$this->load->model('localisation/country');
+
+		$data['countries'] = $this->model_localisation_country->getCountries();
+
 		if (!empty($zone_info)) {
 			$data['country_id'] = $zone_info['country_id'];
 		} else {
 			$data['country_id'] = '';
 		}
-
-		$this->load->model('localisation/country');
-
-		$data['countries'] = $this->model_localisation_country->getCountries();
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -317,17 +337,17 @@ class Zone extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['name']) < 1) || (utf8_strlen($this->request->post['name']) > 64)) {
+		if ((Helper\Utf8\strlen($this->request->post['name']) < 1) || (Helper\Utf8\strlen($this->request->post['name']) > 64)) {
 			$json['error']['name'] = $this->language->get('error_name');
 		}
 
 		if (!$json) {
 			$this->load->model('localisation/zone');
 
-			if (!isset($this->request->get['zone_id'])) {
-				$this->model_localisation_zone->addZone($this->request->post);
+			if (!$this->request->post['zone_id']) {
+				$json['zone_id'] = $this->model_localisation_zone->addZone($this->request->post);
 			} else {
-				$this->model_localisation_zone->editZone($this->request->get['zone_id'], $this->request->post);
+				$this->model_localisation_zone->editZone($this->request->post['zone_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

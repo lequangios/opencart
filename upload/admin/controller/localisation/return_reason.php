@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Localisation;
+use \Opencart\System\Helper AS Helper;
 class ReturnReason extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('localisation/return_reason');
@@ -182,13 +183,14 @@ class ReturnReason extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('localisation/return_reason', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['return_reason_id'])) {
-			$data['save'] = $this->url->link('localisation/return_reason|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('localisation/return_reason|save', 'user_token=' . $this->session->data['user_token'] . '&return_reason_id=' . $this->request->get['return_reason_id']);
-		}
-
+		$data['save'] = $this->url->link('localisation/return_reason|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('localisation/return_reason', 'user_token=' . $this->session->data['user_token'] . $url);
+
+		if (isset($this->request->get['return_reason_id'])) {
+			$data['return_reason_id'] = (int)$this->request->get['return_reason_id'];
+		} else {
+			$data['return_reason_id'] = 0;
+		}
 
 		$this->load->model('localisation/language');
 
@@ -219,7 +221,7 @@ class ReturnReason extends \Opencart\System\Engine\Controller {
 		}
 
 		foreach ($this->request->post['return_reason'] as $language_id => $value) {
-			if ((utf8_strlen($value['name']) < 3) || (utf8_strlen($value['name']) > 128)) {
+			if ((Helper\Utf8\strlen($value['name']) < 3) || (Helper\Utf8\strlen($value['name']) > 128)) {
 				$json['error']['name_' . $language_id] = $this->language->get('error_name');
 			}
 		}
@@ -227,10 +229,10 @@ class ReturnReason extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->model('localisation/return_reason');
 
-			if (!isset($this->request->get['return_reason_id'])) {
-				$this->model_localisation_return_reason->addReturnReason($this->request->post);
+			if (!$this->request->post['return_reason_id']) {
+				$json['return_reason_id'] = $this->model_localisation_return_reason->addReturnReason($this->request->post);
 			} else {
-				$this->model_localisation_return_reason->editReturnReason($this->request->get['return_reason_id'], $this->request->post);
+				$this->model_localisation_return_reason->editReturnReason($this->request->post['return_reason_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

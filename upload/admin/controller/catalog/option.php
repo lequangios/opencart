@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Catalog;
+use \Opencart\System\Helper AS Helper;
 class Option extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('catalog/option');
@@ -184,18 +185,19 @@ class Option extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('catalog/option', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['option_id'])) {
-			$data['save'] = $this->url->link('catalog/option|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('catalog/option|save', 'user_token=' . $this->session->data['user_token'] . '&option_id=' . $this->request->get['option_id']);
-		}
-
+		$data['save'] = $this->url->link('catalog/option|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('catalog/option', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['option_id'])) {
 			$this->load->model('catalog/option');
 
 			$option_info = $this->model_catalog_option->getOption($this->request->get['option_id']);
+		}
+
+		if (isset($this->request->get['option_id'])) {
+			$data['option_id'] = (int)$this->request->get['option_id'];
+		} else {
+			$data['option_id'] = 0;
 		}
 
 		$this->load->model('localisation/language');
@@ -269,7 +271,7 @@ class Option extends \Opencart\System\Engine\Controller {
 		}
 
 		foreach ($this->request->post['option_description'] as $language_id => $value) {
-			if ((utf8_strlen(trim($value['name'])) < 1) || (utf8_strlen($value['name']) > 128)) {
+			if ((Helper\Utf8\strlen(trim($value['name'])) < 1) || (Helper\Utf8\strlen($value['name']) > 128)) {
 				$json['error']['name_' . $language_id] = $this->language->get('error_name');
 			}
 		}
@@ -279,7 +281,7 @@ class Option extends \Opencart\System\Engine\Controller {
 		}
 
 		if (isset($this->request->post['option_value'])) {
-			if (isset($this->request->get['option_id'])) {
+			if (isset($this->request->post['option_id'])) {
 				$this->load->model('catalog/product');
 
 				$option_value_data = [];
@@ -290,7 +292,7 @@ class Option extends \Opencart\System\Engine\Controller {
 					}
 				}
 
-				$product_option_values = $this->model_catalog_product->getOptionValuesByOptionId($this->request->get['option_id']);
+				$product_option_values = $this->model_catalog_product->getOptionValuesByOptionId($this->request->post['option_id']);
 
 				foreach ($product_option_values as $product_option_value) {
 					if (!in_array($product_option_value['option_value_id'], $option_value_data)) {
@@ -303,7 +305,7 @@ class Option extends \Opencart\System\Engine\Controller {
 		if (isset($this->request->post['option_value'])) {
 			foreach ($this->request->post['option_value'] as $option_value_id => $option_value) {
 				foreach ($option_value['option_value_description'] as $language_id => $option_value_description) {
-					if ((utf8_strlen(trim($option_value_description['name'])) < 1) || (utf8_strlen($option_value_description['name']) > 128)) {
+					if ((Helper\Utf8\strlen(trim($option_value_description['name'])) < 1) || (Helper\Utf8\strlen($option_value_description['name']) > 128)) {
 						$json['error']['option_value_' . $option_value_id . '_' . $language_id] = $this->language->get('error_option_value');
 					}
 				}
@@ -317,10 +319,10 @@ class Option extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->model('catalog/option');
 
-			if (!isset($this->request->get['option_id'])) {
-				$this->model_catalog_option->addOption($this->request->post);
+			if (!$this->request->post['option_id']) {
+				$json['option_id'] = $this->model_catalog_option->addOption($this->request->post);
 			} else {
-				$this->model_catalog_option->editOption($this->request->get['option_id'], $this->request->post);
+				$this->model_catalog_option->editOption($this->request->post['option_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

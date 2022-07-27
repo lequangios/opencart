@@ -1,10 +1,53 @@
 <?php
 namespace Opencart\Admin\Controller\Customer;
+use \Opencart\System\Helper AS Helper;
 class Customer extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('customer/customer');
 
 		$this->document->setTitle($this->language->get('heading_title'));
+
+		if (isset($this->request->get['filter_name'])) {
+			$filter_name = $this->request->get['filter_name'];
+		} else {
+			$filter_name = '';
+		}
+
+		if (isset($this->request->get['filter_email'])) {
+			$filter_email = $this->request->get['filter_email'];
+		} else {
+			$filter_email = '';
+		}
+
+		if (isset($this->request->get['filter_customer_group_id'])) {
+			$filter_customer_group_id = (int)$this->request->get['filter_customer_group_id'];
+		} else {
+			$filter_customer_group_id = '';
+		}
+
+		if (isset($this->request->get['filter_status'])) {
+			$filter_status = $this->request->get['filter_status'];
+		} else {
+			$filter_status = '';
+		}
+
+		if (isset($this->request->get['filter_ip'])) {
+			$filter_ip = $this->request->get['filter_ip'];
+		} else {
+			$filter_ip = '';
+		}
+
+		if (isset($this->request->get['filter_date_from'])) {
+			$filter_date_from = $this->request->get['filter_date_from'];
+		} else {
+			$filter_date_from = '';
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$filter_date_to = $this->request->get['filter_date_to'];
+		} else {
+			$filter_date_to = '';
+		}
 
 		$url = '';
 
@@ -28,8 +71,12 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_ip=' . $this->request->get['filter_ip'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -60,6 +107,18 @@ class Customer extends \Opencart\System\Engine\Controller {
 		$data['delete'] = $this->url->link('customer/customer|delete', 'user_token=' . $this->session->data['user_token']);
 
 		$data['list'] = $this->getList();
+
+		$this->load->model('customer/customer_group');
+
+		$data['customer_groups'] = $this->model_customer_customer_group->getCustomerGroups();
+
+		$data['filter_name'] = $filter_name;
+		$data['filter_email'] = $filter_email;
+		$data['filter_customer_group_id'] = $filter_customer_group_id;
+		$data['filter_status'] = $filter_status;
+		$data['filter_ip'] = $filter_ip;
+		$data['filter_date_from'] = $filter_date_from;
+		$data['filter_date_to'] = $filter_date_to;
 
 		$data['user_token'] = $this->session->data['user_token'];
 
@@ -107,10 +166,16 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$filter_ip = '';
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$filter_date_added = $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$filter_date_from = $this->request->get['filter_date_from'];
 		} else {
-			$filter_date_added = '';
+			$filter_date_from = '';
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$filter_date_to = $this->request->get['filter_date_to'];
+		} else {
+			$filter_date_to = '';
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -153,8 +218,12 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_ip=' . $this->request->get['filter_ip'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -182,8 +251,9 @@ class Customer extends \Opencart\System\Engine\Controller {
 			'filter_email'             => $filter_email,
 			'filter_customer_group_id' => $filter_customer_group_id,
 			'filter_status'            => $filter_status,
-			'filter_date_added'        => $filter_date_added,
 			'filter_ip'                => $filter_ip,
+			'filter_date_from'         => $filter_date_from,
+			'filter_date_to'           => $filter_date_to,
 			'sort'                     => $sort,
 			'order'                    => $order,
 			'start'                    => ($page - 1) * $this->config->get('config_pagination_admin'),
@@ -257,8 +327,12 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_ip=' . $this->request->get['filter_ip'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if ($order == 'ASC') {
@@ -299,8 +373,12 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_ip=' . $this->request->get['filter_ip'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -320,17 +398,6 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($customer_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($customer_total - $this->config->get('config_pagination_admin'))) ? $customer_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $customer_total, ceil($customer_total / $this->config->get('config_pagination_admin')));
 
-		$data['filter_name'] = $filter_name;
-		$data['filter_email'] = $filter_email;
-		$data['filter_customer_group_id'] = $filter_customer_group_id;
-		$data['filter_status'] = $filter_status;
-		$data['filter_ip'] = $filter_ip;
-		$data['filter_date_added'] = $filter_date_added;
-
-		$this->load->model('customer/customer_group');
-
-		$data['customer_groups'] = $this->model_customer_customer_group->getCustomerGroups();
-
 		$data['sort'] = $sort;
 		$data['order'] = $order;
 
@@ -346,7 +413,8 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), $this->config->get('config_file_max_size'));
 
-		$data['config_file_max_size'] = $this->config->get('config_file_max_size');
+		$data['config_file_max_size'] = ((int)$this->config->get('config_file_max_size') * 1024 * 1024);
+		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
 
 		$url = '';
 
@@ -370,8 +438,12 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_ip=' . $this->request->get['filter_ip'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -398,13 +470,9 @@ class Customer extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['customer_id'])) {
-			$data['save'] = $this->url->link('customer/customer|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('customer/customer|save', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $this->request->get['customer_id']);
-		}
-
+		$data['save'] = $this->url->link('customer/customer|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . $url);
+		$data['upload'] = $this->url->link('tool/upload|upload', 'user_token=' . $this->session->data['user_token']);
 
 		if (isset($this->request->get['customer_id'])) {
 			$data['orders'] = $this->url->link('sale/order', 'user_token=' . $this->session->data['user_token'] . '&filter_customer_id=' . $this->request->get['customer_id']);
@@ -415,7 +483,13 @@ class Customer extends \Opencart\System\Engine\Controller {
 		if (isset($this->request->get['customer_id'])) {
 			$this->load->model('customer/customer');
 
-			$customer_info = $this->model_customer_customer->getCustomer($this->request->get['customer_id']);
+			$customer_info = $this->model_customer_customer->getCustomer((int)$this->request->get['customer_id']);
+		}
+
+		if (isset($this->request->get['customer_id'])) {
+			$data['customer_id'] = (int)$this->request->get['customer_id'];
+		} else {
+			$data['customer_id'] = 0;
 		}
 
 		$this->load->model('setting/store');
@@ -440,12 +514,6 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$data['store_id'] = $customer_info['store_id'];
 		} else {
 			$data['store_id'] = [0];
-		}
-
-		if (isset($this->request->get['customer_id'])) {
-			$data['customer_id'] = (int)$this->request->get['customer_id'];
-		} else {
-			$data['customer_id'] = 0;
 		}
 
 		$this->load->model('customer/customer_group');
@@ -514,16 +582,19 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$data['account_custom_field'] = [];
 		}
 
+		$data['password'] = '';
+		$data['confirm'] = '';
+
 		if (!empty($customer_info)) {
 			$data['newsletter'] = $customer_info['newsletter'];
 		} else {
-			$data['newsletter'] = '';
+			$data['newsletter'] = 0;
 		}
 
 		if (!empty($customer_info)) {
 			$data['status'] = $customer_info['status'];
 		} else {
-			$data['status'] = true;
+			$data['status'] = 1;
 		}
 
 		if (!empty($customer_info)) {
@@ -532,24 +603,21 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$data['safe'] = 0;
 		}
 
-		$data['password'] = '';
-		$data['confirm'] = '';
-
 		$this->load->model('localisation/country');
 
 		$data['countries'] = $this->model_localisation_country->getCountries();
 
 		if (isset($this->request->get['customer_id'])) {
-			$data['addresses'] = $this->model_customer_customer->getAddresses($this->request->get['customer_id']);
+			$data['addresses'] = $this->model_customer_customer->getAddresses((int)$this->request->get['customer_id']);
 		} else {
 			$data['addresses'] = [];
 		}
 
-		if (!empty($customer_info)) {
-			$data['default'] = array_search($customer_info['address_id'], array_column($data['addresses'], 'address_id'));
-		} else {
-			$data['default'] = '';
-		}
+		$data['payment_method'] = $this->getPayment();
+		$data['history'] = $this->getHistory();
+		$data['transaction'] = $this->getTransaction();
+		$data['reward'] = $this->getReward();
+		$data['ip'] = $this->getIp();
 
 		$data['user_token'] = $this->session->data['user_token'];
 
@@ -569,15 +637,15 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if ((utf8_strlen($this->request->post['firstname']) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['firstname']) < 1) || (Helper\Utf8\strlen($this->request->post['firstname']) > 32)) {
 			$json['error']['firstname'] = $this->language->get('error_firstname');
 		}
 
-		if ((utf8_strlen($this->request->post['lastname']) < 1) || (utf8_strlen(trim($this->request->post['lastname'])) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['lastname']) < 1) || (Helper\Utf8\strlen($this->request->post['lastname']) > 32)) {
 			$json['error']['lastname'] = $this->language->get('error_lastname');
 		}
 
-		if ((utf8_strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
+		if ((Helper\Utf8\strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
 			$json['error']['email'] = $this->language->get('error_email');
 		}
 
@@ -585,17 +653,17 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$customer_info = $this->model_customer_customer->getCustomerByEmail($this->request->post['email']);
 
-		if (!isset($this->request->get['customer_id'])) {
+		if (!$this->request->post['customer_id']) {
 			if ($customer_info) {
 				$json['error']['warning'] = $this->language->get('error_exists');
 			}
 		} else {
-			if ($customer_info && ($this->request->get['customer_id'] != $customer_info['customer_id'])) {
+			if ($customer_info && ($this->request->post['customer_id'] != $customer_info['customer_id'])) {
 				$json['error']['warning'] = $this->language->get('error_exists');
 			}
 		}
 
-		if ((utf8_strlen($this->request->post['telephone']) < 3) || (utf8_strlen($this->request->post['telephone']) > 32)) {
+		if ($this->config->get('config_telephone_required') && (Helper\Utf8\strlen($this->request->post['telephone']) < 3) || (Helper\Utf8\strlen($this->request->post['telephone']) > 32)) {
 			$json['error']['telephone'] = $this->language->get('error_telephone');
 		}
 
@@ -614,8 +682,8 @@ class Customer extends \Opencart\System\Engine\Controller {
 			}
 		}
 
-		if ($this->request->post['password'] || (!isset($this->request->get['customer_id']))) {
-			if ((utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, 'UTF-8')) < 4) || (utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, 'UTF-8')) > 40)) {
+		if ($this->request->post['password'] || (!isset($this->request->post['customer_id']))) {
+			if ((Helper\Utf8\strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, 'UTF-8')) < 4) || (Helper\Utf8\strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, 'UTF-8')) > 40)) {
 				$json['error']['password'] = $this->language->get('error_password');
 			}
 
@@ -626,19 +694,19 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		if (isset($this->request->post['address'])) {
 			foreach ($this->request->post['address'] as $key => $value) {
-				if ((utf8_strlen($value['firstname']) < 1) || (utf8_strlen($value['firstname']) > 32)) {
+				if ((Helper\Utf8\strlen($value['firstname']) < 1) || (Helper\Utf8\strlen($value['firstname']) > 32)) {
 					$json['error']['address_' . $key . '_firstname'] = $this->language->get('error_firstname');
 				}
 
-				if ((utf8_strlen($value['lastname']) < 1) || (utf8_strlen($value['lastname']) > 32)) {
+				if ((\Opencart\System\Helper\Utf8\strlen($value['lastname']) < 1) || (\Opencart\System\Helper\Utf8\strlen($value['lastname']) > 32)) {
 					$json['error']['address_' . $key . '_lastname'] = $this->language->get('error_lastname');
 				}
 
-				if ((utf8_strlen($value['address_1']) < 3) || (utf8_strlen($value['address_1']) > 128)) {
+				if ((\Opencart\System\Helper\Utf8\strlen($value['address_1']) < 3) || (\Opencart\System\Helper\Utf8\strlen($value['address_1']) > 128)) {
 					$json['error']['address_' . $key . '_address_1'] = $this->language->get('error_address_1');
 				}
 
-				if ((utf8_strlen($value['city']) < 2) || (utf8_strlen($value['city']) > 128)) {
+				if ((\Opencart\System\Helper\Utf8\strlen($value['city']) < 2) || (\Opencart\System\Helper\Utf8\strlen($value['city']) > 128)) {
 					$json['error']['address_' . $key . '_city'] = $this->language->get('error_city');
 				}
 
@@ -650,7 +718,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 					$country_info = $this->model_localisation_country->getCountry($value['country_id']);
 
-					if ($country_info && $country_info['postcode_required'] && (utf8_strlen($value['postcode']) < 2 || utf8_strlen($value['postcode']) > 10)) {
+					if ($country_info && $country_info['postcode_required'] && (Helper\Utf8\strlen($value['postcode']) < 2 || Helper\Utf8\strlen($value['postcode']) > 10)) {
 						$json['error']['address_' . $key . '_postcode'] = $this->language->get('error_postcode');
 					}
 				}
@@ -660,10 +728,12 @@ class Customer extends \Opencart\System\Engine\Controller {
 				}
 
 				foreach ($custom_fields as $custom_field) {
-					if (($custom_field['location'] == 'address') && $custom_field['required'] && empty($value['custom_field'][$custom_field['custom_field_id']])) {
-						$json['error']['address_' . $key . '_custom_field_' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-					} elseif (($custom_field['location'] == 'address') && ($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !preg_match(html_entity_decode($custom_field['validation'], ENT_QUOTES, 'UTF-8'), $value['custom_field'][$custom_field['custom_field_id']])) {
-						$json['error']['address_' . $key . '_custom_field_' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_regex'), $custom_field['name']);
+					if ($custom_field['status']) {
+						if (($custom_field['location'] == 'address') && $custom_field['required'] && empty($value['custom_field'][$custom_field['custom_field_id']])) {
+							$json['error']['address_' . $key . '_custom_field_' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
+						} elseif (($custom_field['location'] == 'address') && ($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !preg_match(html_entity_decode($custom_field['validation'], ENT_QUOTES, 'UTF-8'), $value['custom_field'][$custom_field['custom_field_id']])) {
+							$json['error']['address_' . $key . '_custom_field_' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_regex'), $custom_field['name']);
+						}
 					}
 				}
 			}
@@ -674,10 +744,10 @@ class Customer extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			if (!isset($this->request->get['customer_id'])) {
-				$this->model_customer_customer->addCustomer($this->request->post);
+			if (!$this->request->post['customer_id']) {
+				$json['customer_id'] = $this->model_customer_customer->addCustomer($this->request->post);
 			} else {
-				$this->model_customer_customer->editCustomer($this->request->get['customer_id'], $this->request->post);
+				$this->model_customer_customer->editCustomer($this->request->post['customer_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');
@@ -754,7 +824,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		if ($customer_info) {
 			// Create token to login with
-			$token = token(64);
+			$token = Helper\General\token(64);
 
 			$this->model_customer_customer->editToken($customer_id, $token);
 
@@ -763,8 +833,6 @@ class Customer extends \Opencart\System\Engine\Controller {
 			} else {
 				$store_id = 0;
 			}
-
-			$this->load->model('setting/setting');
 
 			$this->load->model('setting/store');
 
@@ -782,11 +850,97 @@ class Customer extends \Opencart\System\Engine\Controller {
 		}
 	}
 
-	public function history(): void {
+	public function payment(): void {
 		$this->load->language('customer/customer');
+
+		$this->response->setOutput($this->getPayment());
+	}
+
+	private function getPayment(): string {
+		if (isset($this->request->get['customer_id'])) {
+			$customer_id = (int)$this->request->get['customer_id'];
+		} else {
+			$customer_id = 0;
+		}
+
+		if (isset($this->request->get['page'])) {
+			$page = (int)$this->request->get['page'];
+		} else {
+			$page = 1;
+		}
+
+		$data['payment_methods'] = [];
 
 		$this->load->model('customer/customer');
 
+		$results = $this->model_customer_customer->getPaymentMethods($customer_id, ($page - 1) * 10, 10);
+
+		foreach ($results as $result) {
+			if (isset($result['image'])) {
+				$image = DIR_IMAGE . 'payment/' . $result['image'];
+			} else {
+				$image = '';
+			}
+
+			$data['payment_methods'][] = [
+				'customer_payment_id' => $result['customer_payment_id'],
+				'name'                => $result['name'],
+				'image'               => $image,
+				'type'                => $result['type'],
+				'status'              => $result['status'],
+				'date_expire'         => date($this->language->get('date_format_short'), strtotime($result['date_expire'])),
+				'delete'              => $this->url->link('customer/customer|deletePayment', 'user_token=' . $this->session->data['user_token'] . '&customer_payment_id=' . $result['customer_payment_id'])
+			];
+		}
+
+		$payment_total = $this->model_customer_customer->getTotalPaymentMethods($customer_id);
+
+		$data['pagination'] = $this->load->controller('common/pagination', [
+			'total' => $payment_total,
+			'page'  => $page,
+			'limit' => 10,
+			'url'   => $this->url->link('customer/customer|payment', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $customer_id . '&page={page}')
+		]);
+
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($payment_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($payment_total - 10)) ? $payment_total : ((($page - 1) * 10) + 10), $payment_total, ceil($payment_total / 10));
+
+		return $this->load->view('customer/customer_payment', $data);
+	}
+
+	public function deletePayment(): void {
+		$this->load->language('customer/customer');
+
+		$json = [];
+
+		if (isset($this->request->get['customer_payment_id'])) {
+			$customer_payment_id = (int)$this->request->get['customer_payment_id'];
+		} else {
+			$customer_payment_id = 0;
+		}
+
+		if (!$this->user->hasPermission('modify', 'customer/customer')) {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
+			$this->load->model('customer/customer');
+
+			$this->model_customer_customer->deletePaymentMethod($customer_payment_id);
+
+			$json['success'] = $this->language->get('text_success');
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	public function history(): void {
+		$this->load->language('customer/customer');
+
+		$this->response->setOutput($this->getHistory());
+	}
+
+	public function getHistory(): string {
 		if (isset($this->request->get['customer_id'])) {
 			$customer_id = (int)$this->request->get['customer_id'];
 		} else {
@@ -801,11 +955,13 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['histories'] = [];
 
+		$this->load->model('customer/customer');
+
 		$results = $this->model_customer_customer->getHistories($customer_id, ($page - 1) * 10, 10);
 
 		foreach ($results as $result) {
 			$data['histories'][] = [
-				'comment'    => $result['comment'],
+				'comment'    => nl2br($result['comment']),
 				'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added']))
 			];
 		}
@@ -821,7 +977,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($history_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($history_total - 10)) ? $history_total : ((($page - 1) * 10) + 10), $history_total, ceil($history_total / 10));
 
-		$this->response->setOutput($this->load->view('customer/customer_history', $data));
+		return $this->load->view('customer/customer_history', $data);
 	}
 
 	public function addHistory(): void {
@@ -837,7 +993,9 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		if (!$this->user->hasPermission('modify', 'customer/customer')) {
 			$json['error'] = $this->language->get('error_permission');
-		} else {
+		}
+
+		if (!$json) {
 			$this->load->model('customer/customer');
 
 			$this->model_customer_customer->addHistory($customer_id, $this->request->post['comment']);
@@ -852,6 +1010,10 @@ class Customer extends \Opencart\System\Engine\Controller {
 	public function transaction(): void {
 		$this->load->language('customer/customer');
 
+		$this->response->setOutput($this->getTransaction());
+	}
+
+	public function getTransaction(): string {
 		if (isset($this->request->get['customer_id'])) {
 			$customer_id = (int)$this->request->get['customer_id'];
 		} else {
@@ -864,9 +1026,9 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$page = 1;
 		}
 
-		$this->load->model('customer/customer');
-
 		$data['transactions'] = [];
+
+		$this->load->model('customer/customer');
 
 		$results = $this->model_customer_customer->getTransactions($customer_id, ($page - 1) * 10, 10);
 
@@ -891,7 +1053,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($transaction_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($transaction_total - 10)) ? $transaction_total : ((($page - 1) * 10) + 10), $transaction_total, ceil($transaction_total / 10));
 
-		$this->response->setOutput($this->load->view('customer/customer_transaction', $data));
+		return $this->load->view('customer/customer_transaction', $data);
 	}
 
 	public function addTransaction(): void {
@@ -907,10 +1069,20 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		if (!$this->user->hasPermission('modify', 'customer/customer')) {
 			$json['error'] = $this->language->get('error_permission');
-		} else {
+		}
+
+		$this->load->model('customer/customer');
+
+		$customer_info = $this->model_customer_customer->getCustomer($customer_id);
+
+		if (!$customer_info) {
+			$json['error'] = $this->language->get('error_customer');
+		}
+
+		if (!$json) {
 			$this->load->model('customer/customer');
 
-			$this->model_customer_customer->addTransaction($customer_id, $this->request->post['description'], $this->request->post['amount']);
+			$this->model_customer_customer->addTransaction($customer_id, (string)$this->request->post['description'], (float)$this->request->post['amount']);
 
 			$json['success'] = $this->language->get('text_success');
 		}
@@ -922,6 +1094,10 @@ class Customer extends \Opencart\System\Engine\Controller {
 	public function reward(): void {
 		$this->load->language('customer/customer');
 
+		$this->response->setOutput($this->getReward());
+	}
+
+	public function getReward(): string {
 		if (isset($this->request->get['customer_id'])) {
 			$customer_id = (int)$this->request->get['customer_id'];
 		} else {
@@ -934,9 +1110,9 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$page = 1;
 		}
 
-		$this->load->model('customer/customer');
-
 		$data['rewards'] = [];
+
+		$this->load->model('customer/customer');
 
 		$results = $this->model_customer_customer->getRewards($customer_id, ($page - 1) * 10, 10);
 
@@ -961,7 +1137,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($reward_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($reward_total - 10)) ? $reward_total : ((($page - 1) * 10) + 10), $reward_total, ceil($reward_total / 10));
 
-		$this->response->setOutput($this->load->view('customer/customer_reward', $data));
+		return $this->load->view('customer/customer_reward', $data);
 	}
 
 	public function addReward(): void {
@@ -977,10 +1153,20 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		if (!$this->user->hasPermission('modify', 'customer/customer')) {
 			$json['error'] = $this->language->get('error_permission');
-		} else {
+		}
+
+		$this->load->model('customer/customer');
+
+		$customer_info = $this->model_customer_customer->getCustomer($customer_id);
+
+		if (!$customer_info) {
+			$json['error'] = $this->language->get('error_customer');
+		}
+
+		if (!$json) {
 			$this->load->model('customer/customer');
 
-			$this->model_customer_customer->addReward($customer_id, $this->request->post['description'], $this->request->post['points']);
+			$this->model_customer_customer->addReward($customer_id, (string)$this->request->post['description'], (int)$this->request->post['points']);
 
 			$json['success'] = $this->language->get('text_success');
 		}
@@ -992,6 +1178,10 @@ class Customer extends \Opencart\System\Engine\Controller {
 	public function ip(): void {
 		$this->load->language('customer/customer');
 
+		$this->response->setOutput($this->getIp());
+	}
+
+	public function getIp(): string {
 		if (isset($this->request->get['customer_id'])) {
 			$customer_id = (int)$this->request->get['customer_id'];
 		} else {
@@ -1004,10 +1194,10 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$page = 1;
 		}
 
+		$data['ips'] = [];
+
 		$this->load->model('customer/customer');
 		$this->load->model('setting/store');
-
-		$data['ips'] = [];
 
 		$results = $this->model_customer_customer->getIps($customer_id, ($page - 1) * 10, 10);
 
@@ -1043,7 +1233,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($ip_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($ip_total - 10)) ? $ip_total : ((($page - 1) * 10) + 10), $ip_total, ceil($ip_total / 10));
 
-		$this->response->setOutput($this->load->view('customer/customer_ip', $data));
+		return $this->load->view('customer/customer_ip', $data);
 	}
 
 	public function autocomplete(): void {
@@ -1062,21 +1252,14 @@ class Customer extends \Opencart\System\Engine\Controller {
 				$filter_email = '';
 			}
 
-			if (isset($this->request->get['filter_affiliate'])) {
-				$filter_affiliate = $this->request->get['filter_affiliate'];
-			} else {
-				$filter_affiliate = '';
-			}
-
-			$this->load->model('customer/customer');
-
 			$filter_data = [
 				'filter_name'      => $filter_name,
 				'filter_email'     => $filter_email,
-				'filter_affiliate' => $filter_affiliate,
 				'start'            => 0,
 				'limit'            => 5
 			];
+
+			$this->load->model('customer/customer');
 
 			$results = $this->model_customer_customer->getCustomers($filter_data);
 
@@ -1108,10 +1291,35 @@ class Customer extends \Opencart\System\Engine\Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function customfield(): void {
+	public function address(): void {
+		$this->load->language('customer/customer');
+
 		$json = [];
 
-		$this->load->model('customer/custom_field');
+		if (isset($this->request->get['address_id'])) {
+			$address_id = (int)$this->request->get['address_id'];
+		} else {
+			$address_id = 0;
+		}
+
+		$this->load->model('customer/customer');
+
+		$address_info = $this->model_customer_customer->getAddress($address_id);
+
+		if (!$address_info) {
+			$json['error'] = $this->language->get('error_address');
+		}
+
+		if (!$json) {
+			$json = $address_info;
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	public function customfield(): void {
+		$json = [];
 
 		// Customer Group
 		if (isset($this->request->get['customer_group_id'])) {
@@ -1120,6 +1328,8 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$customer_group_id = $this->config->get('config_customer_group_id');
 		}
 
+		$this->load->model('customer/custom_field');
+
 		$custom_fields = $this->model_customer_custom_field->getCustomFields(['filter_customer_group_id' => $customer_group_id]);
 
 		foreach ($custom_fields as $custom_field) {
@@ -1127,19 +1337,6 @@ class Customer extends \Opencart\System\Engine\Controller {
 				'custom_field_id' => $custom_field['custom_field_id'],
 				'required'        => empty($custom_field['required']) || $custom_field['required'] == 0 ? false : true
 			];
-		}
-
-		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
-	}
-
-	public function address(): void {
-		$json = [];
-
-		if (!empty($this->request->get['address_id'])) {
-			$this->load->model('customer/customer');
-
-			$json = $this->model_customer_customer->getAddress($this->request->get['address_id']);
 		}
 
 		$this->response->addHeader('Content-Type: application/json');

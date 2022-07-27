@@ -97,7 +97,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			];
 		}
 
-		$query = $this->db->query("SELECT COUNT(*) AS total, `date_added` FROM `" . DB_PREFIX . "order` WHERE `order_status_id` IN(" . implode(",", $implode) . ") AND DATE(`date_added`) >= '" . $this->db->escape(date('Y') . '-' . date('m') . '-1') . "' GROUP BY DATE(`date_added`)");
+		$query = $this->db->query("SELECT COUNT(*) AS total, `date_added` FROM `" . DB_PREFIX . "order` WHERE `order_status_id` IN(" . implode(",", $implode) . ") AND DATE(`date_added`) >= DATE('" . $this->db->escape(date('Y') . '-' . date('m') . '-1') . "') GROUP BY DATE(`date_added`)");
 
 		foreach ($query->rows as $result) {
 			$order_data[date('j', strtotime($result['date_added']))] = [
@@ -147,11 +147,11 @@ class Sale extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_date_start'])) {
-			$sql .= " AND DATE(o.`date_added`) >= '" . $this->db->escape((string)$data['filter_date_start']) . "'";
+			$sql .= " AND DATE(o.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_start']) . "')";
 		}
 
 		if (!empty($data['filter_date_end'])) {
-			$sql .= " AND DATE(o.`date_added`) <= '" . $this->db->escape((string)$data['filter_date_end']) . "'";
+			$sql .= " AND DATE(o.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_end']) . "')";
 		}
 
 		if (!empty($data['filter_group'])) {
@@ -160,7 +160,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			$group = 'week';
 		}
 
-		switch($group) {
+		switch ($group) {
 			case 'day';
 				$sql .= " GROUP BY YEAR(o.`date_added`), MONTH(o.`date_added`), DAY(o.`date_added`)";
 				break;
@@ -202,7 +202,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			$group = 'week';
 		}
 
-		switch($group) {
+		switch ($group) {
 			case 'day';
 				$sql = "SELECT COUNT(DISTINCT YEAR(`date_added`), MONTH(`date_added`), DAY(`date_added`)) AS `total` FROM `" . DB_PREFIX . "order`";
 				break;
@@ -225,16 +225,16 @@ class Sale extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_date_start'])) {
-			$sql .= " AND DATE(`date_added`) >= '" . $this->db->escape((string)$data['filter_date_start']) . "'";
+			$sql .= " AND DATE(`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_start']) . "')";
 		}
 
 		if (!empty($data['filter_date_end'])) {
-			$sql .= " AND DATE(`date_added`) <= '" . $this->db->escape((string)$data['filter_date_end']) . "'";
+			$sql .= " AND DATE(`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_end']) . "')";
 		}
 
 		$query = $this->db->query($sql);
 
-		return $query->row['total'];
+		return (int)$query->row['total'];
 	}
 
 	public function getTaxes(array $data = []): array {
@@ -247,11 +247,11 @@ class Sale extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_date_start'])) {
-			$sql .= " AND DATE(o.`date_added`) >= '" . $this->db->escape((string)$data['filter_date_start']) . "'";
+			$sql .= " AND DATE(o.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_start']) . "')";
 		}
 
 		if (!empty($data['filter_date_end'])) {
-			$sql .= " AND DATE(o.`date_added`) <= '" . $this->db->escape((string)$data['filter_date_end']) . "'";
+			$sql .= " AND DATE(o.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_end']) . "')";
 		}
 
 		if (!empty($data['filter_group'])) {
@@ -260,7 +260,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			$group = 'week';
 		}
 
-		switch($group) {
+		switch ($group) {
 			case 'day';
 				$sql .= " GROUP BY YEAR(o.`date_added`), MONTH(o.`date_added`), DAY(o.`date_added`), ot.`title`";
 				break;
@@ -300,7 +300,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			$group = 'week';
 		}
 
-		switch($group) {
+		switch ($group) {
 			case 'day';
 				$sql = "SELECT COUNT(DISTINCT YEAR(o.`date_added`), MONTH(o.`date_added`), DAY(o.`date_added`), ot.`title`) AS `total` FROM `" . DB_PREFIX . "order` o";
 				break;
@@ -325,16 +325,16 @@ class Sale extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_date_start'])) {
-			$sql .= " AND DATE(o.`date_added`) >= '" . $this->db->escape((string)$data['filter_date_start']) . "'";
+			$sql .= " AND DATE(o.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_start']) . "')";
 		}
 
 		if (!empty($data['filter_date_end'])) {
-			$sql .= " AND DATE(o.`date_added`) <= '" . $this->db->escape((string)$data['filter_date_end']) . "'";
+			$sql .= " AND DATE(o.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_end']) . "')";
 		}
 
 		$query = $this->db->query($sql);
 
-		return $query->row['total'];
+		return (int)$query->row['total'];
 	}
 
 	public function getShipping(array $data = []): array {
@@ -347,11 +347,11 @@ class Sale extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_date_start'])) {
-			$sql .= " AND DATE(o.`date_added`) >= '" . $this->db->escape((string)$data['filter_date_start']) . "'";
+			$sql .= " AND DATE(o.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_start']) . "')";
 		}
 
 		if (!empty($data['filter_date_end'])) {
-			$sql .= " AND DATE(o.`date_added`) <= '" . $this->db->escape((string)$data['filter_date_end']) . "'";
+			$sql .= " AND DATE(o.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_end']) . "')";
 		}
 
 		if (!empty($data['filter_group'])) {
@@ -360,7 +360,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			$group = 'week';
 		}
 
-		switch($group) {
+		switch ($group) {
 			case 'day';
 				$sql .= " GROUP BY YEAR(o.`date_added`), MONTH(o.`date_added`), DAY(o.`date_added`), ot.`title`";
 				break;
@@ -400,7 +400,7 @@ class Sale extends \Opencart\System\Engine\Model {
 			$group = 'week';
 		}
 
-		switch($group) {
+		switch ($group) {
 			case 'day';
 				$sql = "SELECT COUNT(DISTINCT YEAR(o.`date_added`), MONTH(o.`date_added`), DAY(o.`date_added`), ot.`title`) AS `total` FROM `" . DB_PREFIX . "order` o";
 				break;
@@ -425,15 +425,15 @@ class Sale extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_date_start'])) {
-			$sql .= " AND DATE(o.`date_added`) >= '" . $this->db->escape((string)$data['filter_date_start']) . "'";
+			$sql .= " AND DATE(o.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_start']) . "')";
 		}
 
 		if (!empty($data['filter_date_end'])) {
-			$sql .= " AND DATE(o.`date_added`) <= '" . $this->db->escape((string)$data['filter_date_end']) . "'";
+			$sql .= " AND DATE(o.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_end']) . "')";
 		}
 
 		$query = $this->db->query($sql);
 
-		return $query->row['total'];
+		return (int)$query->row['total'];
 	}
 }

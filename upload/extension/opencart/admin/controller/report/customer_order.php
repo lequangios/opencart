@@ -24,7 +24,6 @@ class CustomerOrder extends \Opencart\System\Engine\Controller {
 		];
 
 		$data['save'] = $this->url->link('extension/opencart/report/customer_order|save', 'user_token=' . $this->session->data['user_token']);
-
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=report');
 
 		$data['report_customer_order_status'] = $this->config->get('report_customer_order_status');
@@ -61,6 +60,24 @@ class CustomerOrder extends \Opencart\System\Engine\Controller {
 	public function report(): void {
 		$this->load->language('extension/opencart/report/customer_order');
 
+		$data['list'] = $this->getReport();
+
+		$this->load->model('localisation/order_status');
+
+		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+
+		$data['user_token'] = $this->session->data['user_token'];
+
+		$this->response->setOutput($this->load->view('extension/opencart/report/customer_order', $data));
+	}
+
+	public function list(): void {
+		$this->load->language('extension/opencart/report/customer_order');
+
+		$this->response->setOutput($this->getReport());
+	}
+
+	public function getReport(): string {
 		if (isset($this->request->get['filter_date_start'])) {
 			$filter_date_start = $this->request->get['filter_date_start'];
 		} else {
@@ -117,13 +134,9 @@ class CustomerOrder extends \Opencart\System\Engine\Controller {
 				'orders'         => $result['orders'],
 				'products'       => $result['products'],
 				'total'          => $this->currency->format($result['total'], $this->config->get('config_currency')),
-				'edit'           => $this->url->link('customer/customer|edit', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'])
+				'edit'           => $this->url->link('customer/customer|form', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'])
 			];
 		}
-
-		$this->load->model('localisation/order_status');
-
-		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
 
 		$url = '';
 
@@ -159,6 +172,6 @@ class CustomerOrder extends \Opencart\System\Engine\Controller {
 
 		$data['user_token'] = $this->session->data['user_token'];
 
-		$this->response->setOutput($this->load->view('extension/opencart/report/customer_order', $data));
+		return $this->load->view('extension/opencart/report/customer_order_list', $data);
 	}
 }

@@ -1,10 +1,59 @@
 <?php
 namespace Opencart\Admin\Controller\Sale;
+use \Opencart\System\Helper AS Helper;
 class Returns extends \Opencart\System\Engine\Controller {
 	public function index(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
 
 		$this->document->setTitle($this->language->get('heading_title'));
+
+		if (isset($this->request->get['filter_return_id'])) {
+			$filter_return_id = (int)$this->request->get['filter_return_id'];
+		} else {
+			$filter_return_id = '';
+		}
+
+		if (isset($this->request->get['filter_order_id'])) {
+			$filter_order_id = (int)$this->request->get['filter_order_id'];
+		} else {
+			$filter_order_id = '';
+		}
+
+		if (isset($this->request->get['filter_customer'])) {
+			$filter_customer = $this->request->get['filter_customer'];
+		} else {
+			$filter_customer = '';
+		}
+
+		if (isset($this->request->get['filter_product'])) {
+			$filter_product = $this->request->get['filter_product'];
+		} else {
+			$filter_product = '';
+		}
+
+		if (isset($this->request->get['filter_model'])) {
+			$filter_model = $this->request->get['filter_model'];
+		} else {
+			$filter_model = '';
+		}
+
+		if (isset($this->request->get['filter_return_status_id'])) {
+			$filter_return_status_id = (int)$this->request->get['filter_return_status_id'];
+		} else {
+			$filter_return_status_id = '';
+		}
+
+		if (isset($this->request->get['filter_date_from'])) {
+			$filter_date_from = $this->request->get['filter_date_from'];
+		} else {
+			$filter_date_from = '';
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$filter_date_to = $this->request->get['filter_date_to'];
+		} else {
+			$filter_date_to = '';
+		}
 
 		$url = '';
 
@@ -32,12 +81,12 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_return_status_id=' . $this->request->get['filter_return_status_id'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
 		}
 
-		if (isset($this->request->get['filter_date_modified'])) {
-			$url .= '&filter_date_modified=' . $this->request->get['filter_date_modified'];
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -69,17 +118,30 @@ class Returns extends \Opencart\System\Engine\Controller {
 
 		$data['list'] = $this->getList();
 
+		$this->load->model('localisation/return_status');
+
+		$data['return_statuses'] = $this->model_localisation_return_status->getReturnStatuses();
+
+		$data['filter_return_id'] = $filter_return_id;
+		$data['filter_order_id'] = $filter_order_id;
+		$data['filter_customer'] = $filter_customer;
+		$data['filter_product'] = $filter_product;
+		$data['filter_model'] = $filter_model;
+		$data['filter_return_status_id'] = $filter_return_status_id;
+		$data['filter_date_from'] = $filter_date_from;
+		$data['filter_date_to'] = $filter_date_to;
+
 		$data['user_token'] = $this->session->data['user_token'];
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
-		$this->response->setOutput($this->load->view('sale/return', $data));
+		$this->response->setOutput($this->load->view('sale/returns', $data));
 	}
 
 	public function list(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
 
 		$this->response->setOutput($this->getList());
 	}
@@ -121,16 +183,16 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$filter_return_status_id = '';
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$filter_date_added = $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$filter_date_from = $this->request->get['filter_date_from'];
 		} else {
-			$filter_date_added = '';
+			$filter_date_from = '';
 		}
 
-		if (isset($this->request->get['filter_date_modified'])) {
-			$filter_date_modified = $this->request->get['filter_date_modified'];
+		if (isset($this->request->get['filter_date_to'])) {
+			$filter_date_to = $this->request->get['filter_date_to'];
 		} else {
-			$filter_date_modified = '';
+			$filter_date_to = '';
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -177,12 +239,12 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_return_status_id=' . $this->request->get['filter_return_status_id'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
 		}
 
-		if (isset($this->request->get['filter_date_modified'])) {
-			$url .= '&filter_date_modified=' . $this->request->get['filter_date_modified'];
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -208,8 +270,8 @@ class Returns extends \Opencart\System\Engine\Controller {
 			'filter_product'          => $filter_product,
 			'filter_model'            => $filter_model,
 			'filter_return_status_id' => $filter_return_status_id,
-			'filter_date_added'       => $filter_date_added,
-			'filter_date_modified'    => $filter_date_modified,
+			'filter_date_from'        => $filter_date_from,
+			'filter_date_to'          => $filter_date_to,
 			'sort'                    => $sort,
 			'order'                   => $order,
 			'start'                   => ($page - 1) * $this->config->get('config_pagination_admin'),
@@ -262,12 +324,12 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_return_status_id=' . $this->request->get['filter_return_status_id'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
 		}
 
-		if (isset($this->request->get['filter_date_modified'])) {
-			$url .= '&filter_date_modified=' . $this->request->get['filter_date_modified'];
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if ($order == 'ASC') {
@@ -315,12 +377,12 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_return_status_id=' . $this->request->get['filter_return_status_id'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
 		}
 
-		if (isset($this->request->get['filter_date_modified'])) {
-			$url .= '&filter_date_modified=' . $this->request->get['filter_date_modified'];
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -340,27 +402,14 @@ class Returns extends \Opencart\System\Engine\Controller {
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($return_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($return_total - $this->config->get('config_pagination_admin'))) ? $return_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $return_total, ceil($return_total / $this->config->get('config_pagination_admin')));
 
-		$data['filter_return_id'] = $filter_return_id;
-		$data['filter_order_id'] = $filter_order_id;
-		$data['filter_customer'] = $filter_customer;
-		$data['filter_product'] = $filter_product;
-		$data['filter_model'] = $filter_model;
-		$data['filter_return_status_id'] = $filter_return_status_id;
-		$data['filter_date_added'] = $filter_date_added;
-		$data['filter_date_modified'] = $filter_date_modified;
-
-		$this->load->model('localisation/return_status');
-
-		$data['return_statuses'] = $this->model_localisation_return_status->getReturnStatuses();
-
 		$data['sort'] = $sort;
 		$data['order'] = $order;
 
-		return $this->load->view('sale/return_list', $data);
+		return $this->load->view('sale/returns_list', $data);
 	}
 
 	public function form(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
@@ -392,12 +441,12 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_return_status_id=' . $this->request->get['filter_return_status_id'];
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
 		}
 
-		if (isset($this->request->get['filter_date_modified'])) {
-			$url .= '&filter_date_modified=' . $this->request->get['filter_date_modified'];
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -424,18 +473,19 @@ class Returns extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('sale/returns', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['return_id'])) {
-			$data['save'] = $this->url->link('sale/returns|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('sale/returns|save', 'user_token=' . $this->session->data['user_token'] . '&return_id=' . $this->request->get['return_id']);
-		}
-
+		$data['save'] = $this->url->link('sale/returns|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('sale/returns', 'user_token=' . $this->session->data['user_token'] . $url);
 
 		if (isset($this->request->get['return_id'])) {
 			$this->load->model('sale/returns');
 
 			$return_info = $this->model_sale_returns->getReturn($this->request->get['return_id']);
+		}
+
+		if (isset($this->request->get['return_id'])) {
+			$data['return_id'] = (int)$this->request->get['return_id'];
+		} else {
+			$data['return_id'] = 0;
 		}
 
 		if (!empty($return_info)) {
@@ -516,20 +566,14 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$data['opened'] = '';
 		}
 
-		if (!empty($return_info)) {
-			$data['return_reason_id'] = $return_info['return_reason_id'];
-		} else {
-			$data['return_reason_id'] = '';
-		}
-
 		$this->load->model('localisation/return_reason');
 
 		$data['return_reasons'] = $this->model_localisation_return_reason->getReturnReasons();
 
 		if (!empty($return_info)) {
-			$data['return_action_id'] = $return_info['return_action_id'];
+			$data['return_reason_id'] = $return_info['return_reason_id'];
 		} else {
-			$data['return_action_id'] = '';
+			$data['return_reason_id'] = 0;
 		}
 
 		$this->load->model('localisation/return_action');
@@ -537,10 +581,20 @@ class Returns extends \Opencart\System\Engine\Controller {
 		$data['return_actions'] = $this->model_localisation_return_action->getReturnActions();
 
 		if (!empty($return_info)) {
+			$data['return_action_id'] = $return_info['return_action_id'];
+		} else {
+			$data['return_action_id'] = 0;
+		}
+
+		if (!empty($return_info)) {
 			$data['comment'] = $return_info['comment'];
 		} else {
 			$data['comment'] = '';
 		}
+
+		$this->load->model('localisation/return_status');
+
+		$data['return_statuses'] = $this->model_localisation_return_status->getReturnStatuses();
 
 		if (!empty($return_info)) {
 			$data['return_status_id'] = $return_info['return_status_id'];
@@ -548,9 +602,7 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$data['return_status_id'] = '';
 		}
 
-		$this->load->model('localisation/return_status');
-
-		$data['return_statuses'] = $this->model_localisation_return_status->getReturnStatuses();
+		$data['history'] = $this->getHistory();
 
 		$data['user_token'] = $this->session->data['user_token'];
 
@@ -558,11 +610,11 @@ class Returns extends \Opencart\System\Engine\Controller {
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
-		$this->response->setOutput($this->load->view('sale/return_form', $data));
+		$this->response->setOutput($this->load->view('sale/returns_form', $data));
 	}
 
 	public function save(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
 
 		$json = [];
 
@@ -574,27 +626,27 @@ class Returns extends \Opencart\System\Engine\Controller {
 			$json['error']['order_id'] = $this->language->get('error_order_id');
 		}
 
-		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['firstname']) < 1) || (Helper\Utf8\strlen($this->request->post['firstname']) > 32)) {
 			$json['error']['firstname'] = $this->language->get('error_firstname');
 		}
 
-		if ((utf8_strlen(trim($this->request->post['lastname'])) < 1) || (utf8_strlen(trim($this->request->post['lastname'])) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['lastname']) < 1) || (Helper\Utf8\strlen($this->request->post['lastname']) > 32)) {
 			$json['error']['lastname'] = $this->language->get('error_lastname');
 		}
 
-		if ((utf8_strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
+		if ((Helper\Utf8\strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
 			$json['error']['email'] = $this->language->get('error_email');
 		}
 
-		if ((utf8_strlen($this->request->post['telephone']) < 3) || (utf8_strlen($this->request->post['telephone']) > 32)) {
+		if ((Helper\Utf8\strlen($this->request->post['telephone']) < 3) || (Helper\Utf8\strlen($this->request->post['telephone']) > 32)) {
 			$json['error']['telephone'] = $this->language->get('error_telephone');
 		}
 
-		if ((utf8_strlen($this->request->post['product']) < 1) || (utf8_strlen($this->request->post['product']) > 255)) {
+		if ((Helper\Utf8\strlen($this->request->post['product']) < 1) || (Helper\Utf8\strlen($this->request->post['product']) > 255)) {
 			$json['error']['product'] = $this->language->get('error_product');
 		}
 
-		if ((utf8_strlen($this->request->post['model']) < 1) || (utf8_strlen($this->request->post['model']) > 64)) {
+		if ((Helper\Utf8\strlen($this->request->post['model']) < 1) || (Helper\Utf8\strlen($this->request->post['model']) > 64)) {
 			$json['error']['model'] = $this->language->get('error_model');
 		}
 
@@ -609,10 +661,10 @@ class Returns extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->model('sale/returns');
 
-			if (!isset($this->request->get['return_id'])) {
-				$this->model_sale_returns->addReturn($this->request->post);
+			if (!$this->request->post['return_id']) {
+				$json['return_id'] = $this->model_sale_returns->addReturn($this->request->post);
 			} else {
-				$this->model_sale_returns->editReturn($this->request->get['return_id'], $this->request->post);
+				$this->model_sale_returns->editReturn($this->request->post['return_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');
@@ -623,7 +675,7 @@ class Returns extends \Opencart\System\Engine\Controller {
 	}
 
 	public function delete(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
 
 		$json = [];
 
@@ -652,7 +704,17 @@ class Returns extends \Opencart\System\Engine\Controller {
 	}
 
 	public function history(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
+
+		$this->response->setOutput($this->getHistory());
+	}
+
+	public function getHistory(): string {
+		if (isset($this->request->get['return_id'])) {
+			$return_id = (int)$this->request->get['return_id'];
+		} else {
+			$return_id = 0;
+		}
 
 		if (isset($this->request->get['page'])) {
 			$page = (int)$this->request->get['page'];
@@ -664,7 +726,7 @@ class Returns extends \Opencart\System\Engine\Controller {
 
 		$this->load->model('sale/returns');
 
-		$results = $this->model_sale_returns->getHistories($this->request->get['return_id'], ($page - 1) * 10, 10);
+		$results = $this->model_sale_returns->getHistories($return_id, ($page - 1) * 10, 10);
 
 		foreach ($results as $result) {
 			$data['histories'][] = [
@@ -675,33 +737,45 @@ class Returns extends \Opencart\System\Engine\Controller {
 			];
 		}
 
-		$history_total = $this->model_sale_returns->getTotalHistories($this->request->get['return_id']);
+		$history_total = $this->model_sale_returns->getTotalHistories($return_id);
 
 		$data['pagination'] = $this->load->controller('common/pagination', [
 			'total' => $history_total,
 			'page'  => $page,
 			'limit' => 10,
-			'url'   => $this->url->link('sale/returns|history', 'user_token=' . $this->session->data['user_token'] . '&return_id=' . $this->request->get['return_id'] . '&page={page}')
+			'url'   => $this->url->link('sale/returns|history', 'user_token=' . $this->session->data['user_token'] . '&return_id=' . $return_id . '&page={page}')
 		]);
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($history_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($history_total - 10)) ? $history_total : ((($page - 1) * 10) + 10), $history_total, ceil($history_total / 10));
 
-		$this->response->setOutput($this->load->view('sale/return_history', $data));
+		return $this->load->view('sale/returns_history', $data);
 	}
 
 	public function addHistory(): void {
-		$this->load->language('sale/return');
+		$this->load->language('sale/returns');
 
 		$json = [];
+
+		if (isset($this->request->get['return_id'])) {
+			$return_id = (int)$this->request->get['return_id'];
+		} else {
+			$return_id = 0;
+		}
 
 		if (!$this->user->hasPermission('modify', 'sale/returns')) {
 			$json['error'] = $this->language->get('error_permission');
 		}
 
-		if (!$json) {
-			$this->load->model('sale/returns');
+		$this->load->model('sale/returns');
 
-			$this->model_sale_returns->addHistory($this->request->get['return_id'], $this->request->post['return_status_id'], $this->request->post['comment'], $this->request->post['notify']);
+		$return_info = $this->model_sale_returns->getReturn($return_id);
+
+		if (!$return_info) {
+			$json['error'] = $this->language->get('error_return');
+		}
+
+		if (!$json) {
+			$this->model_sale_returns->addHistory($return_id, $this->request->post['return_status_id'], $this->request->post['comment'], $this->request->post['notify']);
 
 			$json['success'] = $this->language->get('text_success');
 		}

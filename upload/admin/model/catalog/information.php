@@ -2,7 +2,7 @@
 namespace Opencart\Admin\Model\Catalog;
 class Information extends \Opencart\System\Engine\Model {
 	public function addInformation(array $data): int {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "information` SET `sort_order` = '" . (int)$data['sort_order'] . "', `bottom` = '" . (isset($data['bottom']) ? (int)$data['bottom'] : 0) . "', `status` = '" . (bool)$data['status'] . "'");
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "information` SET `sort_order` = '" . (int)$data['sort_order'] . "', `bottom` = '" . (isset($data['bottom']) ? (int)$data['bottom'] : 0) . "', `status` = '" . (bool)(isset($data['status']) ? $data['status'] : 0) . "'");
 
 		$information_id = $this->db->getLastId();
 
@@ -20,9 +20,7 @@ class Information extends \Opencart\System\Engine\Model {
 		if (isset($data['information_seo_url'])) {
 			foreach ($data['information_seo_url'] as $store_id => $language) {
 				foreach ($language as $language_id => $keyword) {
-					if ($keyword) {
-						$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$store_id . "', `language_id` = '" . (int)$language_id . "', `key` = 'information_id', `value` = '" . (int)$information_id . "', `keyword` = '" . $this->db->escape($keyword) . "'");
-					}
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$store_id . "', `language_id` = '" . (int)$language_id . "', `key` = 'information_id', `value` = '" . (int)$information_id . "', `keyword` = '" . $this->db->escape($keyword) . "'");
 				}
 			}
 		}
@@ -39,7 +37,7 @@ class Information extends \Opencart\System\Engine\Model {
 	}
 
 	public function editInformation(int $information_id, array $data): void {
-		$this->db->query("UPDATE `" . DB_PREFIX . "information` SET `sort_order` = '" . (int)$data['sort_order'] . "', `bottom` = '" . (isset($data['bottom']) ? (int)$data['bottom'] : 0) . "', `status` = '" . (bool)$data['status'] . "' WHERE `information_id` = '" . (int)$information_id . "'");
+		$this->db->query("UPDATE `" . DB_PREFIX . "information` SET `sort_order` = '" . (int)$data['sort_order'] . "', `bottom` = '" . (isset($data['bottom']) ? (int)$data['bottom'] : 0) . "', `status` = '" . (bool)(isset($data['status']) ? $data['status'] : 0) . "' WHERE `information_id` = '" . (int)$information_id . "'");
 
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "information_description` WHERE `information_id` = '" . (int)$information_id . "'");
 
@@ -60,9 +58,7 @@ class Information extends \Opencart\System\Engine\Model {
 		if (isset($data['information_seo_url'])) {
 			foreach ($data['information_seo_url'] as $store_id => $language) {
 				foreach ($language as $language_id => $keyword) {
-					if ($keyword) {
-						$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$store_id . "', `language_id` = '" . (int)$language_id . "', `key` = 'information_id', `value` = '" . (int)$information_id . "', `keyword` = '" . $this->db->escape($keyword) . "'");
-					}
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$store_id . "', `language_id` = '" . (int)$language_id . "', `key` = 'information_id', `value` = '" . (int)$information_id . "', `keyword` = '" . $this->db->escape($keyword) . "'");
 				}
 			}
 		}

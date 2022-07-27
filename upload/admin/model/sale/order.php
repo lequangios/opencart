@@ -54,11 +54,9 @@ class Order extends \Opencart\System\Engine\Model {
 			$affiliate_info = $this->model_customer_customer->getCustomer($order_query->row['affiliate_id']);
 
 			if ($affiliate_info) {
-				$affiliate_firstname = $affiliate_info['firstname'];
-				$affiliate_lastname = $affiliate_info['lastname'];
+				$affiliate = $affiliate_info['firstname'] . ' ' . $affiliate_info['lastname'];
 			} else {
-				$affiliate_firstname = '';
-				$affiliate_lastname = '';
+				$affiliate = '';
 			}
 
 			$this->load->model('localisation/language');
@@ -128,8 +126,7 @@ class Order extends \Opencart\System\Engine\Model {
 				'order_status_id'         => $order_query->row['order_status_id'],
 				'order_status'            => $order_query->row['order_status'],
 				'affiliate_id'            => $order_query->row['affiliate_id'],
-				'affiliate_firstname'     => $affiliate_firstname,
-				'affiliate_lastname'      => $affiliate_lastname,
+				'affiliate'               => $affiliate,
 				'commission'              => $order_query->row['commission'],
 				'language_id'             => $order_query->row['language_id'],
 				'language_code'           => $language_code,
@@ -182,19 +179,19 @@ class Order extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_customer'])) {
-			$sql .= " AND CONCAT(o.`firstname`, ' ', o.`lastname`) LIKE '%" . $this->db->escape((string)$data['filter_customer']) . "%'";
+			$sql .= " AND CONCAT(o.`firstname`, ' ', o.`lastname`) LIKE '" . $this->db->escape('%' . (string)$data['filter_customer'] . '%') . "'";
 		}
 
 		if (!empty($data['filter_email'])) {
-			$sql .= " AND o.`email` LIKE '%" . $this->db->escape((string)$data['filter_email']) . "%'";
+			$sql .= " AND o.`email` LIKE '" . $this->db->escape('%' . (string)$data['filter_email'] . '%') . "'";
 		}
 
-		if (!empty($data['filter_date_added'])) {
-			$sql .= " AND DATE(o.`date_added`) = DATE('" . $this->db->escape((string)$data['filter_date_added']) . "')";
+		if (!empty($data['filter_date_from'])) {
+			$sql .= " AND DATE(o.`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_from']) . "')";
 		}
 
-		if (!empty($data['filter_date_modified'])) {
-			$sql .= " AND DATE(o.`date_modified`) = DATE('" . $this->db->escape((string)$data['filter_date_modified']) . "')";
+		if (!empty($data['filter_date_to'])) {
+			$sql .= " AND DATE(o.`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_to']) . "')";
 		}
 
 		if (!empty($data['filter_total'])) {
@@ -244,6 +241,12 @@ class Order extends \Opencart\System\Engine\Model {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '" . (int)$order_id . "' ORDER BY order_product_id ASC");
 
 		return $query->rows;
+	}
+
+	public function getProductByOrderProductId(int $order_id, int $order_product_id): array {
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '" . (int)$order_id . "' AND `order_product_id` = '" . (int)$order_product_id . "' ORDER BY `order_product_id` ASC");
+
+		return $query->row;
 	}
 
 	public function getOptions(int $order_id, int $order_product_id): array {
@@ -304,19 +307,19 @@ class Order extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_customer'])) {
-			$sql .= " AND CONCAT(`firstname`, ' ', `lastname`) LIKE '%" . $this->db->escape((string)$data['filter_customer']) . "%'";
+			$sql .= " AND CONCAT(`firstname`, ' ', `lastname`) LIKE '" . $this->db->escape('%' . (string)$data['filter_customer'] . '%') . "'";
 		}
 
 		if (!empty($data['filter_email'])) {
-			$sql .= " AND `email` LIKE '%" . $this->db->escape((string)$data['filter_email']) . "%'";
+			$sql .= " AND `email` LIKE '" . $this->db->escape('%' . (string)$data['filter_email'] . '%') . "'";
 		}
 
-		if (!empty($data['filter_date_added'])) {
-			$sql .= " AND DATE(`date_added`) = DATE('" . $this->db->escape((string)$data['filter_date_added']) . "')";
+		if (!empty($data['filter_date_from'])) {
+			$sql .= " AND DATE(`date_added`) >= DATE('" . $this->db->escape((string)$data['filter_date_from']) . "')";
 		}
 
-		if (!empty($data['filter_date_modified'])) {
-			$sql .= " AND DATE(`date_modified`) = DATE('" . $this->db->escape((string)$data['filter_date_modified']) . "')";
+		if (!empty($data['filter_date_to'])) {
+			$sql .= " AND DATE(`date_added`) <= DATE('" . $this->db->escape((string)$data['filter_date_to']) . "')";
 		}
 
 		if (!empty($data['filter_total'])) {
@@ -389,7 +392,7 @@ class Order extends \Opencart\System\Engine\Model {
 	}
 
 	public function getTotalSales(array $data = []): float {
-		$sql = "SELECT SUM(total) AS `total` FROM `" . DB_PREFIX . "order`";
+		$sql = "SELECT SUM(`total`) AS `total` FROM `" . DB_PREFIX . "order`";
 
 		if (!empty($data['filter_order_status'])) {
 			$implode = [];
@@ -422,11 +425,11 @@ class Order extends \Opencart\System\Engine\Model {
 		}
 
 		if (!empty($data['filter_customer'])) {
-			$sql .= " AND CONCAT(`firstname`, ' ', `lastname`) LIKE '%" . $this->db->escape((string)$data['filter_customer']) . "%'";
+			$sql .= " AND CONCAT(`firstname`, ' ', `lastname`) LIKE '" . $this->db->escape('%' . (string)$data['filter_customer'] . '%') . "'";
 		}
 
 		if (!empty($data['filter_email'])) {
-			$sql .= " AND `email` LIKE '%" . $this->db->escape((string)$data['filter_email']) . "%'";
+			$sql .= " AND `email` LIKE '" . $this->db->escape('%' . (string)$data['filter_email'] . '%') . "'";
 		}
 
 		if (!empty($data['filter_date_added'])) {
@@ -446,7 +449,7 @@ class Order extends \Opencart\System\Engine\Model {
 		return (int)$query->row['total'];
 	}
 
-	public function createInvoiceNo(int $order_id) {
+	public function createInvoiceNo(int $order_id): string {
 		$order_info = $this->getOrder($order_id);
 
 		if ($order_info && !$order_info['invoice_no']) {
@@ -464,7 +467,13 @@ class Order extends \Opencart\System\Engine\Model {
 		}
 	}
 
-	public function getHistories(int $order_id, int $start = 0, int $limit = 10) {
+	public function getRewardTotal(int $order_id): int {
+		$query = $this->db->query("SELECT SUM(reward * quantity) AS `total` FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '" . (int)$order_id . "'");
+
+		return (int)$query->row['total'];
+	}
+
+	public function getHistories(int $order_id, int $start = 0, int $limit = 10): array {
 		if ($start < 0) {
 			$start = 0;
 		}
@@ -473,7 +482,7 @@ class Order extends \Opencart\System\Engine\Model {
 			$limit = 10;
 		}
 
-		$query = $this->db->query("SELECT oh.`date_added`, os.`name` AS status, oh.`comment`, oh.`notify` FROM `" . DB_PREFIX . "order_history` oh LEFT JOIN `" . DB_PREFIX . "order_status` os ON oh.`order_status_id` = os.`order_status_id` WHERE oh.`order_id` = '" . (int)$order_id . "' AND os.`language_id` = '" . (int)$this->config->get('config_language_id') . "' ORDER BY oh.`date_added` DESC LIMIT " . (int)$start . "," . (int)$limit);
+		$query = $this->db->query("SELECT oh.`date_added`, os.`name` AS `status`, oh.`comment`, oh.`notify` FROM `" . DB_PREFIX . "order_history` oh LEFT JOIN `" . DB_PREFIX . "order_status` os ON oh.`order_status_id` = os.`order_status_id` WHERE oh.`order_id` = '" . (int)$order_id . "' AND os.`language_id` = '" . (int)$this->config->get('config_language_id') . "' ORDER BY oh.`date_added` DESC LIMIT " . (int)$start . "," . (int)$limit);
 
 		return $query->rows;
 	}
@@ -490,7 +499,7 @@ class Order extends \Opencart\System\Engine\Model {
 		return (int)$query->row['total'];
 	}
 
-	public function getEmailsByProductsOrdered(array $products, int $start, int $end) {
+	public function getEmailsByProductsOrdered(array $products, int $start, int $end): array {
 		$implode = [];
 
 		foreach ($products as $product_id) {

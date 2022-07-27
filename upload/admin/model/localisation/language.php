@@ -2,7 +2,7 @@
 namespace Opencart\Admin\Model\Localisation;
 class Language extends \Opencart\System\Engine\Model {
 	public function addLanguage(array $data): int {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "language` SET `name` = '" . $this->db->escape((string)$data['name']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `locale` = '" . $this->db->escape((string)$data['locale']) . "', `sort_order` = '" . (int)$data['sort_order'] . "', `status` = '" . (bool)$data['status'] . "'");
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "language` SET `name` = '" . $this->db->escape((string)$data['name']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `locale` = '" . $this->db->escape((string)$data['locale']) . "', `extension` = '" . $this->db->escape((string)$data['extension']) . "', `sort_order` = '" . (int)$data['sort_order'] . "', `status` = '" . (bool)(isset($data['status']) ? $data['status'] : 0) . "'");
 
 		$this->cache->delete('catalog.language');
 		$this->cache->delete('admin.language');
@@ -188,11 +188,11 @@ class Language extends \Opencart\System\Engine\Model {
 
 		$this->cache->delete('weight_class');
 
-		// Profiles
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "recurring_description` WHERE `language_id` = '" . (int)$this->config->get('config_language_id') . "'");
+		// Subscription
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "subscription_status` WHERE `language_id` = '" . (int)$this->config->get('config_language_id') . "'");
 
-		foreach ($query->rows as $recurring) {
-			$this->db->query("INSERT INTO `" . DB_PREFIX . "recurring_description` SET `recurring_id` = '" . (int)$recurring['recurring_id'] . "', `language_id` = '" . (int)$language_id . "', `name` = '" . $this->db->escape($recurring['name']) . "'");
+		foreach ($query->rows as $subscription) {
+			$this->db->query("INSERT INTO `" . DB_PREFIX . "subscription_status` SET `subscription_status_id` = '" . (int)$subscription['subscription_status_id'] . "', `language_id` = '" . (int)$language_id . "', `name` = '" . $this->db->escape($subscription['name']) . "'");
 		}
 
 		return $language_id;
@@ -201,7 +201,7 @@ class Language extends \Opencart\System\Engine\Model {
 	public function editLanguage(int $language_id, array $data): void {
 		$language_query = $this->db->query("SELECT `code` FROM `" . DB_PREFIX . "language` WHERE `language_id` = '" . (int)$language_id . "'");
 
-		$this->db->query("UPDATE `" . DB_PREFIX . "language` SET `name` = '" . $this->db->escape((string)$data['name']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `locale` = '" . $this->db->escape((string)$data['locale']) . "', `sort_order` = '" . (int)$data['sort_order'] . "', `status` = '" . (bool)$data['status'] . "' WHERE `language_id` = '" . (int)$language_id . "'");
+		$this->db->query("UPDATE `" . DB_PREFIX . "language` SET `name` = '" . $this->db->escape((string)$data['name']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `locale` = '" . $this->db->escape((string)$data['locale']) . "', `extension` = '" . $this->db->escape((string)$data['extension']) . "', `sort_order` = '" . (int)$data['sort_order'] . "', `status` = '" . (bool)(isset($data['status']) ? $data['status'] : 0) . "' WHERE `language_id` = '" . (int)$language_id . "'");
 
 		if ($language_query->row['code'] != $data['code']) {
 			$this->db->query("UPDATE `" . DB_PREFIX . "setting` SET `value` = '" . $this->db->escape((string)$data['code']) . "' WHERE `key` = 'config_language' AND `value` = '" . $this->db->escape($language_query->row['code']) . "'");
@@ -291,7 +291,6 @@ class Language extends \Opencart\System\Engine\Model {
 						'name'        => $result['name'],
 						'code'        => $result['code'],
 						'locale'      => $result['locale'],
-						'image'       => $result['image'],
 						'sort_order'  => $result['sort_order'],
 						'status'      => $result['status']
 					];

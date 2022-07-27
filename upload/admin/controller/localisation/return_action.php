@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Localisation;
+use \Opencart\System\Helper AS Helper;
 class ReturnAction extends \Opencart\System\Engine\Controller {
 
 	public function index(): void {
@@ -183,13 +184,14 @@ class ReturnAction extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('localisation/return_action', 'user_token=' . $this->session->data['user_token'] . $url)
 		];
 
-		if (!isset($this->request->get['return_action_id'])) {
-			$data['save'] = $this->url->link('localisation/return_action|save', 'user_token=' . $this->session->data['user_token'] . $url);
-		} else {
-			$data['save'] = $this->url->link('localisation/return_action|save', 'user_token=' . $this->session->data['user_token'] . '&return_action_id=' . $this->request->get['return_action_id']);
-		}
-
+		$data['save'] = $this->url->link('localisation/return_action|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('localisation/return_action', 'user_token=' . $this->session->data['user_token'] . $url);
+
+		if (isset($this->request->get['return_action_id'])) {
+			$data['return_action_id'] = (int)$this->request->get['return_action_id'];
+		} else {
+			$data['return_action_id'] = 0;
+		}
 
 		$this->load->model('localisation/language');
 
@@ -220,7 +222,7 @@ class ReturnAction extends \Opencart\System\Engine\Controller {
 		}
 
 		foreach ($this->request->post['return_action'] as $language_id => $value) {
-			if ((utf8_strlen($value['name']) < 3) || (utf8_strlen($value['name']) > 64)) {
+			if ((Helper\Utf8\strlen($value['name']) < 3) || (Helper\Utf8\strlen($value['name']) > 64)) {
 				$json['error']['name_' . $language_id] = $this->language->get('error_name');
 			}
 		}
@@ -228,10 +230,10 @@ class ReturnAction extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->model('localisation/return_action');
 
-			if (!isset($this->request->get['return_action_id'])) {
-				$this->model_localisation_return_action->addReturnAction($this->request->post);
+			if (!$this->request->post['return_action_id']) {
+				$json['return_action_id'] = $this->model_localisation_return_action->addReturnAction($this->request->post);
 			} else {
-				$this->model_localisation_return_action->editReturnAction($this->request->get['return_action_id'], $this->request->post);
+				$this->model_localisation_return_action->editReturnAction($this->request->post['return_action_id'], $this->request->post);
 			}
 
 			$json['success'] = $this->language->get('text_success');

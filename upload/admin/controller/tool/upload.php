@@ -1,5 +1,6 @@
 <?php
 namespace Opencart\Admin\Controller\Tool;
+use \Opencart\System\Helper AS Helper;
 class Upload extends \Opencart\System\Engine\Controller {
 	public function index(): void {
 		$this->load->language('tool/upload');
@@ -59,10 +60,16 @@ class Upload extends \Opencart\System\Engine\Controller {
 			$filter_name = '';
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$filter_date_added = $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$filter_date_from = $this->request->get['filter_date_from'];
 		} else {
-			$filter_date_added = '';
+			$filter_date_from = '';
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$filter_date_to = $this->request->get['filter_date_to'];
+		} else {
+			$filter_date_to = '';
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -89,8 +96,12 @@ class Upload extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_name=' . urlencode(html_entity_decode($this->request->get['filter_name'], ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -110,12 +121,13 @@ class Upload extends \Opencart\System\Engine\Controller {
 		$data['uploads'] = [];
 
 		$filter_data = [
-			'filter_name'	    => $filter_name,
-			'filter_date_added'	=> $filter_date_added,
-			'sort'              => $sort,
-			'order'             => $order,
-			'start'             => ($page - 1) * $this->config->get('config_pagination_admin'),
-			'limit'             => $this->config->get('config_pagination_admin')
+			'filter_name'	   => $filter_name,
+			'filter_date_from' => $filter_date_from,
+			'filter_date_to'   => $filter_date_to,
+			'sort'             => $sort,
+			'order'            => $order,
+			'start'            => ($page - 1) * $this->config->get('config_pagination_admin'),
+			'limit'            => $this->config->get('config_pagination_admin')
 		];
 
 		$this->load->model('tool/upload');
@@ -128,7 +140,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 			$data['uploads'][] = [
 				'upload_id'  => $result['upload_id'],
 				'name'       => $result['name'],
-				'filename'   => $result['filename'],
+				'code'       => $result['code'],
 				'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
 				'download'   => $this->url->link('tool/upload|download', 'user_token=' . $this->session->data['user_token'] . '&code=' . $result['code'] . $url)
 			];
@@ -140,8 +152,12 @@ class Upload extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_name=' . urlencode(html_entity_decode($this->request->get['filter_name'], ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if ($order == 'ASC') {
@@ -155,7 +171,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 		}
 
 		$data['sort_name'] = $this->url->link('tool/upload|list', 'user_token=' . $this->session->data['user_token'] . '&sort=name' . $url);
-		$data['sort_filename'] = $this->url->link('tool/upload|list', 'user_token=' . $this->session->data['user_token'] . '&sort=filename' . $url);
+		$data['sort_code'] = $this->url->link('tool/upload|list', 'user_token=' . $this->session->data['user_token'] . '&sort=code' . $url);
 		$data['sort_date_added'] = $this->url->link('tool/upload|list', 'user_token=' . $this->session->data['user_token'] . '&sort=date_added' . $url);
 
 		$url = '';
@@ -164,8 +180,12 @@ class Upload extends \Opencart\System\Engine\Controller {
 			$url .= '&filter_name=' . urlencode(html_entity_decode($this->request->get['filter_name'], ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['filter_date_added'])) {
-			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
+		if (isset($this->request->get['filter_date_from'])) {
+			$url .= '&filter_date_from=' . $this->request->get['filter_date_from'];
+		}
+
+		if (isset($this->request->get['filter_date_to'])) {
+			$url .= '&filter_date_to=' . $this->request->get['filter_date_to'];
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -186,7 +206,8 @@ class Upload extends \Opencart\System\Engine\Controller {
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($upload_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($upload_total - $this->config->get('config_pagination_admin'))) ? $upload_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $upload_total, ceil($upload_total / $this->config->get('config_pagination_admin')));
 
 		$data['filter_name'] = $filter_name;
-		$data['filter_date_added'] = $filter_date_added;
+		$data['filter_date_from'] = $filter_date_from;
+		$data['filter_date_to'] = $filter_date_to;
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -205,13 +226,13 @@ class Upload extends \Opencart\System\Engine\Controller {
 			$selected = [];
 		}
 
-		$this->load->model('tool/upload');
-
 		if (!$this->user->hasPermission('modify', 'tool/upload')) {
 			$json['error'] = $this->language->get('error_permission');
 		}
 
 		if (!$json) {
+			$this->load->model('tool/upload');
+
 			foreach ($selected as $upload_id) {
 				// Remove file before deleting DB record.
 				$upload_info = $this->model_tool_upload->getUpload($upload_id);
@@ -231,13 +252,15 @@ class Upload extends \Opencart\System\Engine\Controller {
 	}
 
 	public function download(): void {
-		$this->load->model('tool/upload');
+		$this->load->language('tool/upload');
 
 		if (isset($this->request->get['code'])) {
 			$code = $this->request->get['code'];
 		} else {
-			$code = 0;
+			$code = '';
 		}
+
+		$this->load->model('tool/upload');
 
 		$upload_info = $this->model_tool_upload->getUploadByCode($code);
 
@@ -259,10 +282,10 @@ class Upload extends \Opencart\System\Engine\Controller {
 					readfile($file, 'rb');
 					exit;
 				} else {
-					exit('Error: Could not find file ' . $file . '!');
+					exit(sprintf($this->language->get('error_not_found'), basename($file)));
 				}
 			} else {
-				exit('Error: Headers already sent out!');
+				exit($this->language->get('error_headers_sent'));
 			}
 		} else {
 			$this->load->language('error/not_found');
@@ -290,7 +313,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 	}
 
 	public function upload(): void {
-		$this->load->language('sale/order');
+		$this->load->language('tool/upload');
 
 		$json = [];
 
@@ -305,9 +328,10 @@ class Upload extends \Opencart\System\Engine\Controller {
 
 		if (!$json) {
 			// Sanitize the filename
-			$filename = html_entity_decode($this->request->files['file']['name'], ENT_QUOTES, 'UTF-8');
+			$filename = basename(html_entity_decode($this->request->files['file']['name'], ENT_QUOTES, 'UTF-8'));
 
-			if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 128)) {
+			// Validate the filename length
+			if ((Helper\Utf8\strlen($filename) < 3) || (Helper\Utf8\strlen($filename) > 128)) {
 				$json['error'] = $this->language->get('error_filename');
 			}
 
@@ -323,7 +347,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 			}
 
 			if (!in_array(strtolower(substr(strrchr($filename, '.'), 1)), $allowed)) {
-				$json['error'] = $this->language->get('error_filetype');
+				$json['error'] = $this->language->get('error_file_type');
 			}
 
 			// Allowed file mime types
@@ -338,7 +362,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 			}
 
 			if (!in_array($this->request->files['file']['type'], $allowed)) {
-				$json['error'] = $this->language->get('error_filetype');
+				$json['error'] = $this->language->get('error_file_type');
 			}
 
 			// Return any upload error
@@ -348,7 +372,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			$file = $filename . '.' . token(32);
+			$file = $filename . '.' . Helper\General\token(32);
 
 			move_uploaded_file($this->request->files['file']['tmp_name'], DIR_UPLOAD . $file);
 
@@ -357,7 +381,7 @@ class Upload extends \Opencart\System\Engine\Controller {
 
 			$json['code'] = $this->model_tool_upload->addUpload($filename, $file);
 
-			$json['success'] = $this->language->get('text_upload');
+			$json['success'] = $this->language->get('text_success');
 		}
 
 		$this->response->addHeader('Content-Type: application/json');

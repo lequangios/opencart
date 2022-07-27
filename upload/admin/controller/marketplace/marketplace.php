@@ -165,7 +165,11 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 
 		$response_info = json_decode($response, true);
 
-		$extension_total = $response_info['extension_total'];
+		if (isset($response_info['extension_total'])) {
+			$extension_total = (int)$response_info['extension_total'];
+		} else {
+			$extension_total = 0;
+		}
 
 		$url = '';
 
@@ -203,11 +207,11 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 
 		$data['promotions'] = [];
 
-		if ($response_info['promotions'] && $page == 1) {
+		if (isset($response_info['promotions']) && $page == 1) {
 			foreach ($response_info['promotions'] as $result) {
 				$data['promotions'][] = [
-					'name'         => utf8_decode($result['name']),
-					'description'  => utf8_decode($result['description']),
+					'name'         => $result['name'],
+					'description'  => $result['description'],
 					'image'        => $result['image'],
 					'license'      => $result['license'],
 					'price'        => $result['price'],
@@ -220,11 +224,11 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 
 		$data['extensions'] = [];
 
-		if ($response_info['extensions']) {
+		if (isset($response_info['extensions'])) {
 			foreach ($response_info['extensions'] as $result) {
 				$data['extensions'][] = [
-					'name'         => utf8_decode($result['name']),
-					'description'  => utf8_decode($result['description']),
+					'name'         => $result['name'],
+					'description'  => $result['description'],
 					'image'        => $result['image'],
 					'license'      => $result['license'],
 					'price'        => $result['price'],
@@ -493,7 +497,7 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 			'total' => $extension_total,
 			'page'  => $page,
 			'limit' => 12,
-			'url'   => $this->url->link('marketplace/marketplace|list', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+			'url'   => $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
 		]);
 
 		$data['filter_search'] = $filter_search;
@@ -605,8 +609,6 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 				'href' => $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . $url)
 			];
 
-			$this->load->helper('bbcode');
-
 			$data['banner'] = $response_info['banner'];
 
 			$data['extension_id'] = (int)$this->request->get['extension_id'];
@@ -633,7 +635,11 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 			$data['member_date_added'] = $response_info['member_date_added'];
 			$data['filter_member'] = $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . '&filter_member=' . $response_info['member_username']);
 
-			$data['comment_total'] = $response_info['comment_total'];
+			if (isset($response_info['comment_total'])) {
+				$data['comment_total'] = $response_info['comment_total'];
+			} else {
+				$data['comment_total'] = 0;
+			}
 
 			$data['images'] = [];
 
@@ -880,8 +886,6 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 
 					fclose($handle);
 
-					$this->load->model('setting/extension');
-
 					$extension_data = [
 						'extension_id'          => $extension_id,
 						'extension_download_id' => $extension_download_id,
@@ -889,8 +893,10 @@ class Marketplace extends \Opencart\System\Engine\Controller {
 						'code' 				    => basename($response_info['filename'], '.ocmod.zip'),
 						'author'                => $response_info['author'],
 						'version'               => $response_info['version'],
-						'link' 					=> ''
+						'link' 					=> OPENCART_SERVER . 'index.php?route=marketplace/extension|info&extension_id=' . $extension_id
 					];
+
+					$this->load->model('setting/extension');
 
 					$json['extension_install_id'] = $this->model_setting_extension->addInstall($extension_data);
 

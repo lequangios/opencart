@@ -24,7 +24,6 @@ class Marketing extends \Opencart\System\Engine\Controller {
 		];
 
 		$data['save'] = $this->url->link('extension/opencart/report/marketing|save', 'user_token=' . $this->session->data['user_token']);
-
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=report');
 
 		$data['report_marketing_status'] = $this->config->get('report_marketing_status');
@@ -61,6 +60,24 @@ class Marketing extends \Opencart\System\Engine\Controller {
 	public function report(): void {
 		$this->load->language('extension/opencart/report/marketing');
 
+		$data['list'] = $this->getReport();
+
+		$this->load->model('localisation/order_status');
+
+		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+
+		$data['user_token'] = $this->session->data['user_token'];
+
+		$this->response->setOutput($this->load->view('extension/opencart/report/marketing', $data));
+	}
+
+	public function list(): void {
+		$this->load->language('extension/opencart/report/marketing');
+
+		$this->response->setOutput($this->getReport());
+	}
+
+	public function getReport(): string {
 		if (isset($this->request->get['filter_date_start'])) {
 			$filter_date_start = $this->request->get['filter_date_start'];
 		} else {
@@ -108,13 +125,9 @@ class Marketing extends \Opencart\System\Engine\Controller {
 				'clicks'   => $result['clicks'],
 				'orders'   => $result['orders'],
 				'total'    => $this->currency->format((float)$result['total'], $this->config->get('config_currency')),
-				'save'   => $this->url->link('marketing/marketing/edit', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $result['marketing_id'])
+				'save'     => $this->url->link('marketing/marketing/edit', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $result['marketing_id'])
 			];
 		}
-
-		$this->load->model('localisation/order_status');
-
-		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
 
 		$url = '';
 
@@ -145,6 +158,6 @@ class Marketing extends \Opencart\System\Engine\Controller {
 
 		$data['user_token'] = $this->session->data['user_token'];
 
-		$this->response->setOutput($this->load->view('extension/opencart/report/marketing', $data));
+		return $this->load->view('extension/opencart/report/marketing_list', $data);
 	}
 }
